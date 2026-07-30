@@ -17,7 +17,11 @@ public final class ShowEntityScreen {
     }
 
     public static void openCreate(QuestScreen questScreen, Chapter chapter, double qx, double qy) {
+        //? if >=1.21.1 {
+        /*ChapterImage image = new ChapterImage(chapter.getQuestFile().newID(), chapter);*/
+        //?} else {
         ChapterImage image = new ChapterImage(chapter);
+        //?}
         IEntityImageVisOptions opts = (IEntityImageVisOptions) (Object) image;
         opts.ftbquestsentityvis$setEntityVis(true);
         image.setPosition(qx, qy);

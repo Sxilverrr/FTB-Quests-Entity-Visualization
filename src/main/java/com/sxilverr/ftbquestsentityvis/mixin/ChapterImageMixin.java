@@ -80,7 +80,11 @@ public abstract class ChapterImageMixin implements IEntityImageVisOptions {
     @Override public void ftbquestsentityvis$setIconDirty(boolean dirty) { this.ftbquestsentityvis$iconDirty = dirty; }
 
     @Inject(method = "writeData", at = @At("TAIL"), remap = false)
+    //? if >=1.21.1 {
+    /*private void ftbquestsentityvis$writeData(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries, CallbackInfo ci) {*/
+    //?} else {
     private void ftbquestsentityvis$writeData(CompoundTag nbt, CallbackInfoReturnable<CompoundTag> cir) {
+    //?}
         if (!ftbquestsentityvis$entityVis) {
             return;
         }
@@ -100,7 +104,11 @@ public abstract class ChapterImageMixin implements IEntityImageVisOptions {
     }
 
     @Inject(method = "readData", at = @At("TAIL"), remap = false)
+    //? if >=1.21.1 {
+    /*private void ftbquestsentityvis$readData(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries, CallbackInfo ci) {*/
+    //?} else {
     private void ftbquestsentityvis$readData(CompoundTag nbt, CallbackInfo ci) {
+    //?}
         ftbquestsentityvis$entityVis = nbt.getBoolean(ftbquestsentityvis$KEY_ENABLED);
         if (ftbquestsentityvis$entityVis) {
             ftbquestsentityvis$entityId = nbt.contains(ftbquestsentityvis$KEY_ENTITY)
@@ -119,7 +127,11 @@ public abstract class ChapterImageMixin implements IEntityImageVisOptions {
     }
 
     @Inject(method = "writeNetData", at = @At("TAIL"), remap = false)
+    //? if >=1.21.1 {
+    /*private void ftbquestsentityvis$writeNetData(net.minecraft.network.RegistryFriendlyByteBuf buf, CallbackInfo ci) {*/
+    //?} else {
     private void ftbquestsentityvis$writeNetData(FriendlyByteBuf buf, CallbackInfo ci) {
+    //?}
         buf.writeBoolean(ftbquestsentityvis$entityVis);
         if (ftbquestsentityvis$entityVis) {
             buf.writeUtf(ftbquestsentityvis$entityId.toString(), Short.MAX_VALUE);
@@ -136,7 +148,11 @@ public abstract class ChapterImageMixin implements IEntityImageVisOptions {
     }
 
     @Inject(method = "readNetData", at = @At("TAIL"), remap = false)
+    //? if >=1.21.1 {
+    /*private void ftbquestsentityvis$readNetData(net.minecraft.network.RegistryFriendlyByteBuf buf, CallbackInfo ci) {*/
+    //?} else {
     private void ftbquestsentityvis$readNetData(FriendlyByteBuf buf, CallbackInfo ci) {
+    //?}
         ftbquestsentityvis$entityVis = buf.readBoolean();
         if (ftbquestsentityvis$entityVis) {
             ftbquestsentityvis$entityId = ModUtil.rl(buf.readUtf(Short.MAX_VALUE));

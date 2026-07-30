@@ -28,3 +28,10 @@ type = "required"
 versionRange = "${minecraft}"
 ordering = "NONE"
 side = "BOTH"
+
+[[dependencies.${id}]]
+modId = "ftbquests"
+type = "required"
+versionRange = "${ftb_quests_dep}"
+ordering = "AFTER"
+side = "BOTH"

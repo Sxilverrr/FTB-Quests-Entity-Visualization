@@ -34,7 +34,9 @@ public abstract class ChapterImageClientMixin {
     @Shadow(remap = false) private double height;
     @Shadow(remap = false) private int order;
     @Shadow(remap = false) private boolean editorsOnly;
+    //? if <1.21.1 {
     @Shadow(remap = false) @Final private List<String> hover;
+    //?}
 
     @Unique private EntityIcon ftbquestsentityvis$cachedIcon;
 
@@ -63,7 +65,11 @@ public abstract class ChapterImageClientMixin {
         cir.setReturnValue(ftbquestsentityvis$cachedIcon);
     }
 
+    //? if >=1.21.1 {
+    /*@Inject(method = "getAltTitle", at = @At("HEAD"), cancellable = true, remap = false)*/
+    //?} else {
     @Inject(method = "getTitle", at = @At("HEAD"), cancellable = true, remap = false)
+    //?}
     private void ftbquestsentityvis$entityTitle(CallbackInfoReturnable<Component> cir) {
         IEntityImageVisOptions opts = (IEntityImageVisOptions) (Object) this;
         if (opts.ftbquestsentityvis$isEntityVis()) {
@@ -131,8 +137,10 @@ public abstract class ChapterImageClientMixin {
                 .setNameKey("ftbquestsentityvis.config.order");
         config.addBool("dev", editorsOnly, v -> editorsOnly = v, false)
                 .setNameKey("ftbquestsentityvis.config.dev");
+        //? if <1.21.1 {
         config.addList("hover", hover, new StringConfig(), "")
                 .setNameKey("ftbquestsentityvis.config.hover");
+        //?}
     }
 
     @Unique

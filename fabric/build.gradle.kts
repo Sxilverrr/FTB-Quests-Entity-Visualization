@@ -3,7 +3,7 @@
 plugins {
     id("dev.architectury.loom")
     id("architectury-plugin")
-    id("com.github.johnrengelman.shadow")
+    id("com.gradleup.shadow")
 }
 
 val loader = prop("loom.platform")!!
@@ -101,6 +101,7 @@ tasks.processResources {
         "name" to mod.name,
         "version" to mod.version,
         "minecraft" to common.mod.prop("mc_dep_fabric"),
+        "ftb_quests_dep" to common.mod.prop("ftb_quests_dep_fabric"),
         "pack_format" to common.mod.prop("pack_format")
     )
 }

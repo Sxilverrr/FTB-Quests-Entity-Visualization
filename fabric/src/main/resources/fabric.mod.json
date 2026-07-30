@@ -34,7 +34,7 @@
     "java": ">=17",
     "architectury": "*",
     "ftblibrary": "*",
-    "ftbquests": "*",
+    "ftbquests": "${ftb_quests_dep}",
     "cloth-config2": "*"
   },
   "suggests": {
