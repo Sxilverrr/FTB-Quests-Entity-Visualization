@@ -25,6 +25,12 @@
   "ftbquestsentityvis.config.walk_mode.force_on": "Always Walk",
   "ftbquestsentityvis.config.walk_mode.force_off": "Never Walk",
 
+  "ftbquestsentityvis.config.tag_cycle_mode": "Cycle Through Tag",
+  "ftbquestsentityvis.config.tag_cycle_mode.use_global": "Use Global",
+  "ftbquestsentityvis.config.tag_cycle_mode.force_on": "Always Cycle",
+  "ftbquestsentityvis.config.tag_cycle_mode.force_off": "Never Cycle",
+  "ftbquestsentityvis.config.tag_cycle_seconds": "Tag Cycle Seconds (0 = Global)",
+
   "ftbquestsentityvis.config.silhouette": "Black Silhouette",
 
   "ftbquestsentityvis.config.silhouette_mode": "Black Silhouette",
@@ -49,5 +55,11 @@
   "text.autoconfig.ftbquestsentityvis.option.tiltDegrees.@Tooltip": "Camera tilt in degrees.",
   "text.autoconfig.ftbquestsentityvis.option.fullBright": "Full Bright",
   "text.autoconfig.ftbquestsentityvis.option.idleAnimation": "Idle Animation",
-  "text.autoconfig.ftbquestsentityvis.option.walkAnimation": "Walk Animation"
+  "text.autoconfig.ftbquestsentityvis.option.walkAnimation": "Walk Animation",
+  "text.autoconfig.ftbquestsentityvis.option.tagCycle": "Cycle Through Entity Tags",
+  "text.autoconfig.ftbquestsentityvis.option.tagCycle.@Tooltip": "Kill and observation tasks that target an entity type tag cycle through every entity in that tag.",
+  "text.autoconfig.ftbquestsentityvis.option.tagCycleSeconds": "Tag Cycle Seconds",
+  "text.autoconfig.ftbquestsentityvis.option.tagCycleSeconds.@Tooltip": "Seconds each entity of a tag is shown before cycling.",
+  "text.autoconfig.ftbquestsentityvis.option.toastEntityIcons": "Entity Icons In Fancy Toasts",
+  "text.autoconfig.ftbquestsentityvis.option.toastEntityIcons.@Tooltip": "Render the entity inside Fancy Toasts quest notifications instead of the quest book fallback."
 }

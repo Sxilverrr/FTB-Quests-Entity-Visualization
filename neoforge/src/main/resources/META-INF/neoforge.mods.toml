@@ -35,3 +35,10 @@ type = "required"
 versionRange = "${ftb_quests_dep}"
 ordering = "AFTER"
 side = "BOTH"
+
+[[dependencies.${id}]]
+modId = "fancytoasts"
+type = "optional"
+versionRange = "*"
+ordering = "AFTER"
+side = "CLIENT"

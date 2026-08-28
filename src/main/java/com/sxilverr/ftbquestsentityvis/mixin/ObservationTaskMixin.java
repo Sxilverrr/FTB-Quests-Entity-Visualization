@@ -1,5 +1,6 @@
 package com.sxilverr.ftbquestsentityvis.mixin;
 
+import com.sxilverr.ftbquestsentityvis.ObserveTypeAccess;
 import com.sxilverr.ftbquestsentityvis.duck.IKillTaskVisOptions;
 import com.sxilverr.ftbquestsentityvis.duck.OverrideMode;
 import com.sxilverr.ftbquestsentityvis.duck.SilhouetteMode;
@@ -26,6 +27,8 @@ public abstract class ObservationTaskMixin implements IKillTaskVisOptions {
     @Unique private static final String ftbquestsentityvis$KEY_SILHOUETTE_MODE = "entity_vis_silhouette_mode";
     @Unique private static final String ftbquestsentityvis$KEY_USE_AS_QUEST_ICON = "entity_vis_use_as_quest_icon";
     @Unique private static final String ftbquestsentityvis$KEY_NBT = "entity_vis_nbt";
+    @Unique private static final String ftbquestsentityvis$KEY_TAG_CYCLE_MODE = "entity_vis_tag_cycle_mode";
+    @Unique private static final String ftbquestsentityvis$KEY_TAG_CYCLE_SECONDS = "entity_vis_tag_cycle_seconds";
 
     @Shadow(remap = false) private String toObserve;
 
@@ -39,6 +42,8 @@ public abstract class ObservationTaskMixin implements IKillTaskVisOptions {
     @Unique private SilhouetteMode ftbquestsentityvis$silhouetteMode = SilhouetteMode.NONE;
     @Unique private boolean ftbquestsentityvis$useAsQuestIcon = false;
     @Unique private String ftbquestsentityvis$visNbt = "";
+    @Unique private OverrideMode ftbquestsentityvis$tagCycleMode = OverrideMode.USE_GLOBAL;
+    @Unique private float ftbquestsentityvis$tagCycleSeconds = 0.0F;
 
     @Override public float ftbquestsentityvis$getVisSize() { return ftbquestsentityvis$visSize; }
     @Override public void ftbquestsentityvis$setVisSize(float size) { this.ftbquestsentityvis$visSize = size; }
@@ -70,6 +75,18 @@ public abstract class ObservationTaskMixin implements IKillTaskVisOptions {
     @Override public String ftbquestsentityvis$getVisNbt() { return ftbquestsentityvis$visNbt; }
     @Override public void ftbquestsentityvis$setVisNbt(String nbt) { this.ftbquestsentityvis$visNbt = nbt == null ? "" : nbt; }
 
+    @Override public OverrideMode ftbquestsentityvis$getTagCycleMode() { return ftbquestsentityvis$tagCycleMode; }
+    @Override public void ftbquestsentityvis$setTagCycleMode(OverrideMode mode) { this.ftbquestsentityvis$tagCycleMode = mode; }
+
+    @Override public float ftbquestsentityvis$getTagCycleSeconds() { return ftbquestsentityvis$tagCycleSeconds; }
+    @Override public void ftbquestsentityvis$setTagCycleSeconds(float seconds) { this.ftbquestsentityvis$tagCycleSeconds = seconds; }
+
+    @Override
+    public boolean ftbquestsentityvis$isTagTarget() {
+        return toObserve != null && !toObserve.isEmpty()
+                && ObserveTypeAccess.ENTITY_TYPE_TAG.equals(ObserveTypeAccess.nameOf(this));
+    }
+
     @Override
     public ResourceLocation ftbquestsentityvis$getVisEntityId() {
         if (toObserve == null || toObserve.isEmpty() || toObserve.startsWith("#")) {
@@ -96,6 +113,8 @@ public abstract class ObservationTaskMixin implements IKillTaskVisOptions {
         if (!ftbquestsentityvis$visNbt.isEmpty()) {
             nbt.putString(ftbquestsentityvis$KEY_NBT, ftbquestsentityvis$visNbt);
         }
+        nbt.putString(ftbquestsentityvis$KEY_TAG_CYCLE_MODE, ftbquestsentityvis$tagCycleMode.name());
+        nbt.putFloat(ftbquestsentityvis$KEY_TAG_CYCLE_SECONDS, ftbquestsentityvis$tagCycleSeconds);
     }
 
     @Inject(method = "readData", at = @At("TAIL"), remap = false)
@@ -114,6 +133,8 @@ public abstract class ObservationTaskMixin implements IKillTaskVisOptions {
         ftbquestsentityvis$silhouetteMode = nbt.contains(ftbquestsentityvis$KEY_SILHOUETTE_MODE) ? SilhouetteMode.fromName(nbt.getString(ftbquestsentityvis$KEY_SILHOUETTE_MODE)) : SilhouetteMode.NONE;
         ftbquestsentityvis$useAsQuestIcon = nbt.contains(ftbquestsentityvis$KEY_USE_AS_QUEST_ICON) && nbt.getBoolean(ftbquestsentityvis$KEY_USE_AS_QUEST_ICON);
         ftbquestsentityvis$visNbt = nbt.contains(ftbquestsentityvis$KEY_NBT) ? nbt.getString(ftbquestsentityvis$KEY_NBT) : "";
+        ftbquestsentityvis$tagCycleMode = nbt.contains(ftbquestsentityvis$KEY_TAG_CYCLE_MODE) ? OverrideMode.fromName(nbt.getString(ftbquestsentityvis$KEY_TAG_CYCLE_MODE)) : OverrideMode.USE_GLOBAL;
+        ftbquestsentityvis$tagCycleSeconds = nbt.contains(ftbquestsentityvis$KEY_TAG_CYCLE_SECONDS) ? nbt.getFloat(ftbquestsentityvis$KEY_TAG_CYCLE_SECONDS) : 0.0F;
     }
 
     @Inject(method = "writeNetData", at = @At("TAIL"), remap = false)
@@ -132,6 +153,8 @@ public abstract class ObservationTaskMixin implements IKillTaskVisOptions {
         buf.writeUtf(ftbquestsentityvis$silhouetteMode.name());
         buf.writeBoolean(ftbquestsentityvis$useAsQuestIcon);
         buf.writeUtf(ftbquestsentityvis$visNbt, Short.MAX_VALUE);
+        buf.writeUtf(ftbquestsentityvis$tagCycleMode.name());
+        buf.writeFloat(ftbquestsentityvis$tagCycleSeconds);
     }
 
     @Inject(method = "readNetData", at = @At("TAIL"), remap = false)
@@ -150,5 +173,7 @@ public abstract class ObservationTaskMixin implements IKillTaskVisOptions {
         ftbquestsentityvis$silhouetteMode = SilhouetteMode.fromName(buf.readUtf());
         ftbquestsentityvis$useAsQuestIcon = buf.readBoolean();
         ftbquestsentityvis$visNbt = buf.readUtf(Short.MAX_VALUE);
+        ftbquestsentityvis$tagCycleMode = OverrideMode.fromName(buf.readUtf());
+        ftbquestsentityvis$tagCycleSeconds = buf.readFloat();
     }
 }

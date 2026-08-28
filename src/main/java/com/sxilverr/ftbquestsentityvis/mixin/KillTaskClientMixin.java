@@ -1,6 +1,8 @@
 package com.sxilverr.ftbquestsentityvis.mixin;
 
+import com.sxilverr.ftbquestsentityvis.Config;
 import com.sxilverr.ftbquestsentityvis.client.ClientStateUtil;
+import com.sxilverr.ftbquestsentityvis.client.CyclingEntityIcon;
 import com.sxilverr.ftbquestsentityvis.client.EntityIcon;
 import com.sxilverr.ftbquestsentityvis.duck.IKillTaskTagOption;
 import com.sxilverr.ftbquestsentityvis.duck.IKillTaskVisOptions;
@@ -25,6 +27,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
 @Mixin(KillTask.class)
@@ -43,11 +46,33 @@ public abstract class KillTaskClientMixin {
     @Inject(method = "getAltIcon", at = @At("HEAD"), cancellable = true, remap = false)
     private void ftbquestsentityvis$replaceWithEntityIcon(CallbackInfoReturnable<Icon> cir) {
         IKillTaskVisOptions opts = (IKillTaskVisOptions) this;
+        Task self = (Task) (Object) this;
+        BooleanSupplier silhouette = ClientStateUtil.silhouetteCheck(self, opts.ftbquestsentityvis$getSilhouetteMode());
+
+        TagKey<EntityType<?>> tag = ftbquestsentityvis$resolveVisualTag();
+        if (tag != null
+                && opts.ftbquestsentityvis$getTagCycleMode().resolve(Config.tagCycle)
+                && !CyclingEntityIcon.entitiesIn(tag).isEmpty()) {
+            cir.setReturnValue(new CyclingEntityIcon(
+                    tag,
+                    opts.ftbquestsentityvis$getVisSize(),
+                    opts.ftbquestsentityvis$getVisOffsetX(),
+                    opts.ftbquestsentityvis$getVisOffsetY(),
+                    opts.ftbquestsentityvis$getVisRotation(),
+                    opts.ftbquestsentityvis$getSpinMode(),
+                    opts.ftbquestsentityvis$getIdleMode(),
+                    opts.ftbquestsentityvis$getWalkMode(),
+                    silhouette,
+                    opts.ftbquestsentityvis$getVisNbt(),
+                    opts.ftbquestsentityvis$getTagCycleSeconds()
+            ));
+            return;
+        }
+
         ResourceLocation visualEntity = ftbquestsentityvis$resolveVisualEntity();
         if (visualEntity == null) {
             return;
         }
-        Task self = (Task) (Object) this;
         cir.setReturnValue(new EntityIcon(
                 visualEntity,
                 opts.ftbquestsentityvis$getVisSize(),
@@ -57,34 +82,36 @@ public abstract class KillTaskClientMixin {
                 opts.ftbquestsentityvis$getSpinMode(),
                 opts.ftbquestsentityvis$getIdleMode(),
                 opts.ftbquestsentityvis$getWalkMode(),
-                ClientStateUtil.silhouetteCheck(self, opts.ftbquestsentityvis$getSilhouetteMode()),
+                silhouette,
                 opts.ftbquestsentityvis$getVisNbt()
         ));
     }
 
     @Unique
-    private ResourceLocation ftbquestsentityvis$resolveVisualEntity() {
+    private TagKey<EntityType<?>> ftbquestsentityvis$resolveVisualTag() {
         //? if >=1.21.1 {
-        /*if (entityTypeTag != null) {
-            Optional<EntityType<?>> tagFirst = BuiltInRegistries.ENTITY_TYPE.getTag(entityTypeTag)
-                    .flatMap(set -> set.stream().findFirst())
-                    .map(holder -> holder.value());
-            return tagFirst.map(BuiltInRegistries.ENTITY_TYPE::getKey).orElse(null);
-        }
-        return entityTypeId;*/
+        /*return entityTypeTag;*/
         //?} else {
-        if (entity == null) {
+        if (entity == null || !((IKillTaskTagOption) this).ftbquestsentityvis$getUseTag()) {
             return null;
         }
-        boolean useTag = ((IKillTaskTagOption) this).ftbquestsentityvis$getUseTag();
-        if (!useTag) {
-            return entity;
+        return TagKey.create(Registries.ENTITY_TYPE, entity);
+        //?}
+    }
+
+    @Unique
+    private ResourceLocation ftbquestsentityvis$resolveVisualEntity() {
+        TagKey<EntityType<?>> tag = ftbquestsentityvis$resolveVisualTag();
+        if (tag != null) {
+            Optional<EntityType<?>> first = BuiltInRegistries.ENTITY_TYPE.getTag(tag)
+                    .flatMap(set -> set.stream().findFirst())
+                    .map(holder -> holder.value());
+            return first.map(BuiltInRegistries.ENTITY_TYPE::getKey).orElse(null);
         }
-        TagKey<EntityType<?>> tag = TagKey.create(Registries.ENTITY_TYPE, entity);
-        Optional<EntityType<?>> first = BuiltInRegistries.ENTITY_TYPE.getTag(tag)
-                .flatMap(set -> set.stream().findFirst())
-                .map(holder -> holder.value());
-        return first.map(BuiltInRegistries.ENTITY_TYPE::getKey).orElse(null);
+        //? if >=1.21.1 {
+        /*return entityTypeId;*/
+        //?} else {
+        return ((IKillTaskTagOption) this).ftbquestsentityvis$getUseTag() ? null : entity;
         //?}
     }
 

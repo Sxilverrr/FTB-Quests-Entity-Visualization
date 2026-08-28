@@ -87,6 +87,9 @@ public final class TaskEntityIconScreen {
         holder.useAsQuestIcon = opts.ftbquestsentityvis$getUseAsQuestIcon();
         holder.nbt = opts.ftbquestsentityvis$getVisNbt();
         holder.entityId = opts.ftbquestsentityvis$getVisEntityId();
+        holder.isTagTarget = opts.ftbquestsentityvis$isTagTarget();
+        holder.tagCycleMode = opts.ftbquestsentityvis$getTagCycleMode();
+        holder.tagCycleSeconds = opts.ftbquestsentityvis$getTagCycleSeconds();
         openEditor(questScreen, task, holder, () -> {
             opts.ftbquestsentityvis$setVisSize(holder.size);
             opts.ftbquestsentityvis$setVisOffsetX(holder.offsetX);
@@ -98,6 +101,8 @@ public final class TaskEntityIconScreen {
             opts.ftbquestsentityvis$setSilhouetteMode(holder.silhouetteMode);
             opts.ftbquestsentityvis$setUseAsQuestIcon(holder.useAsQuestIcon);
             opts.ftbquestsentityvis$setVisNbt(holder.nbt);
+            opts.ftbquestsentityvis$setTagCycleMode(holder.tagCycleMode);
+            opts.ftbquestsentityvis$setTagCycleSeconds(holder.tagCycleSeconds);
         });
     }
 
@@ -143,6 +148,9 @@ public final class TaskEntityIconScreen {
         private SilhouetteMode silhouetteMode = SilhouetteMode.NONE;
         private boolean useAsQuestIcon = false;
         private String nbt = "";
+        private boolean isTagTarget = false;
+        private OverrideMode tagCycleMode = OverrideMode.USE_GLOBAL;
+        private float tagCycleSeconds = 0.0F;
 
         private void fillConfig(ConfigGroup config) {
             if (hasEntityPicker) {
@@ -179,6 +187,13 @@ public final class TaskEntityIconScreen {
 
             config.addBool("use_as_quest_icon", useAsQuestIcon, v -> useAsQuestIcon = v, false)
                     .setNameKey("ftbquestsentityvis.config.use_as_quest_icon");
+
+            if (isTagTarget) {
+                config.addEnum("tag_cycle_mode", tagCycleMode, v -> tagCycleMode = v, overrideNameMap("tag_cycle_mode"), OverrideMode.USE_GLOBAL)
+                        .setNameKey("ftbquestsentityvis.config.tag_cycle_mode");
+                config.addDouble("tag_cycle_seconds", tagCycleSeconds, v -> tagCycleSeconds = v.floatValue(), 0.0D, 0.0D, 60.0D)
+                        .setNameKey("ftbquestsentityvis.config.tag_cycle_seconds");
+            }
         }
 
         private static NameMap<OverrideMode> overrideNameMap(String key) {

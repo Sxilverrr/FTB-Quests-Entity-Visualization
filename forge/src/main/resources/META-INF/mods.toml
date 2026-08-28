@@ -49,3 +49,10 @@ mandatory = false
 versionRange = "*"
 ordering = "AFTER"
 side = "BOTH"
+
+[[dependencies.${id}]]
+modId = "fancytoasts"
+mandatory = false
+versionRange = "*"
+ordering = "AFTER"
+side = "CLIENT"

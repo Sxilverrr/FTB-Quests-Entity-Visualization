@@ -15,6 +15,14 @@ public class QuestSizeWrappedIcon extends Icon {
         this.questSize = questSize;
     }
 
+    public static Icon wrapIfNeeded(Icon icon, float questSize) {
+        return icon != null && EntityIconLookup.contains(icon) ? new QuestSizeWrappedIcon(icon, questSize) : icon;
+    }
+
+    public Icon getDelegate() {
+        return delegate;
+    }
+
     @Override
     public void draw(GuiGraphics graphics, int x, int y, int w, int h) {
         QuestSizeContext.push(questSize);
@@ -23,6 +31,16 @@ public class QuestSizeWrappedIcon extends Icon {
         } finally {
             QuestSizeContext.pop();
         }
+    }
+
+    @Override
+    public Object getIngredient() {
+        return delegate.getIngredient();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return delegate.isEmpty();
     }
 
     @Override

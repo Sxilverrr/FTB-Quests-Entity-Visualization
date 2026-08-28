@@ -36,7 +36,7 @@ public abstract class QuestClientMixin {
         }
         IQuestVisOptions opts = (IQuestVisOptions) this;
         Icon merged = IconAnimation.fromList(selected, false);
-        cir.setReturnValue(new QuestSizeWrappedIcon(merged, opts.ftbquestsentityvis$getQuestVisSize()));
+        cir.setReturnValue(QuestSizeWrappedIcon.wrapIfNeeded(merged, opts.ftbquestsentityvis$getQuestVisSize()));
     }
 
     @Inject(method = "getAltIcon", at = @At("RETURN"), cancellable = true, remap = false)
@@ -46,6 +46,6 @@ public abstract class QuestClientMixin {
             return;
         }
         IQuestVisOptions opts = (IQuestVisOptions) this;
-        cir.setReturnValue(new QuestSizeWrappedIcon(original, opts.ftbquestsentityvis$getQuestVisSize()));
+        cir.setReturnValue(QuestSizeWrappedIcon.wrapIfNeeded(original, opts.ftbquestsentityvis$getQuestVisSize()));
     }
 }

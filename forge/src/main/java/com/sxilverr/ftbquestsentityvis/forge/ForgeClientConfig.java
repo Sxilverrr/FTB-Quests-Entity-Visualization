@@ -12,6 +12,9 @@ public final class ForgeClientConfig {
     private static final ForgeConfigSpec.BooleanValue FULL_BRIGHT;
     private static final ForgeConfigSpec.BooleanValue IDLE_ANIMATION;
     private static final ForgeConfigSpec.BooleanValue WALK_ANIMATION;
+    private static final ForgeConfigSpec.BooleanValue TAG_CYCLE;
+    private static final ForgeConfigSpec.DoubleValue TAG_CYCLE_SECONDS;
+    private static final ForgeConfigSpec.BooleanValue TOAST_ENTITY_ICONS;
 
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
@@ -21,6 +24,9 @@ public final class ForgeClientConfig {
         FULL_BRIGHT = builder.comment("Render mobs at full brightness?").define("fullBright", true);
         IDLE_ANIMATION = builder.comment("Should mobs play idle animation?").define("idleAnimation", true);
         WALK_ANIMATION = builder.comment("Should mobs play walk animation?").define("walkAnimation", false);
+        TAG_CYCLE = builder.comment("Cycle through every entity of an entity type tag?").define("tagCycle", true);
+        TAG_CYCLE_SECONDS = builder.comment("Seconds each entity of a tag is shown before cycling.").defineInRange("tagCycleSeconds", 2.0, 0.1, 60.0);
+        TOAST_ENTITY_ICONS = builder.comment("Render entity icons inside Fancy Toasts quest notifications?").define("toastEntityIcons", true);
         SPEC = builder.build();
     }
 
@@ -34,5 +40,8 @@ public final class ForgeClientConfig {
         Config.fullBright = FULL_BRIGHT.get();
         Config.idleAnimation = IDLE_ANIMATION.get();
         Config.walkAnimation = WALK_ANIMATION.get();
+        Config.tagCycle = TAG_CYCLE.get();
+        Config.tagCycleSeconds = TAG_CYCLE_SECONDS.get();
+        Config.toastEntityIcons = TOAST_ENTITY_ICONS.get();
     }
 }

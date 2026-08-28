@@ -7,6 +7,9 @@ public final class Config {
     public static boolean fullBright = true;
     public static boolean idleAnimation = true;
     public static boolean walkAnimation = false;
+    public static boolean tagCycle = true;
+    public static double tagCycleSeconds = 2.0;
+    public static boolean toastEntityIcons = true;
 
     private Config() {
     }

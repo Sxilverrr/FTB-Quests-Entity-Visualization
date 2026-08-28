@@ -22,6 +22,12 @@ public final class FabricClientConfig implements ConfigData {
     public boolean fullBright = true;
     public boolean idleAnimation = true;
     public boolean walkAnimation = false;
+    public boolean tagCycle = true;
+
+    @ConfigEntry.Gui.Tooltip
+    public double tagCycleSeconds = 2.0;
+
+    public boolean toastEntityIcons = true;
 
     public static void init() {
         AutoConfig.register(FabricClientConfig.class, GsonConfigSerializer::new);
@@ -44,5 +50,8 @@ public final class FabricClientConfig implements ConfigData {
         Config.fullBright = config.fullBright;
         Config.idleAnimation = config.idleAnimation;
         Config.walkAnimation = config.walkAnimation;
+        Config.tagCycle = config.tagCycle;
+        Config.tagCycleSeconds = config.tagCycleSeconds;
+        Config.toastEntityIcons = config.toastEntityIcons;
     }
 }

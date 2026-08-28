@@ -39,6 +39,7 @@
   },
   "suggests": {
     "modmenu": "*",
-    "questsadditions": "*"
+    "questsadditions": "*",
+    "fancytoasts": "*"
   }
 }

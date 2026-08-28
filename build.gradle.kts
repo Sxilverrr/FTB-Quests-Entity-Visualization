@@ -19,6 +19,7 @@ repositories {
     maven("https://maven.architectury.dev")
     maven("https://maven.ftb.dev/releases")
     maven("https://www.cursemaven.com") { content { includeGroup("curse.maven") } }
+    maven("https://api.modrinth.com/maven") { content { includeGroup("maven.modrinth") } }
 }
 
 dependencies {
@@ -31,6 +32,7 @@ dependencies {
     modCompileOnly("dev.ftb.mods:ftb-quests-fabric:${mod.dep("ftb_quests")}") { isTransitive = false }
 
     compileOnly("curse.maven:quests-additions-580129:6004490")
+    modCompileOnly("maven.modrinth:fancy-toasts:${mod.dep("fancy_toasts")}") { isTransitive = false }
 }
 
 java {

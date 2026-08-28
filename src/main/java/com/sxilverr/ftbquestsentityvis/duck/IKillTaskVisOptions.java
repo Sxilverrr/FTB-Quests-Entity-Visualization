@@ -46,4 +46,22 @@ public interface IKillTaskVisOptions {
     boolean ftbquestsentityvis$getUseAsQuestIcon();
 
     void ftbquestsentityvis$setUseAsQuestIcon(boolean useAsQuestIcon);
+
+    default OverrideMode ftbquestsentityvis$getTagCycleMode() {
+        return OverrideMode.USE_GLOBAL;
+    }
+
+    default void ftbquestsentityvis$setTagCycleMode(OverrideMode mode) {
+    }
+
+    default float ftbquestsentityvis$getTagCycleSeconds() {
+        return 0.0F;
+    }
+
+    default void ftbquestsentityvis$setTagCycleSeconds(float seconds) {
+    }
+
+    default boolean ftbquestsentityvis$isTagTarget() {
+        return false;
+    }
 }

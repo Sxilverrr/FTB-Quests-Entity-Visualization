@@ -11,6 +11,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -34,6 +35,8 @@ public abstract class KillTaskMixin implements IKillTaskVisOptions/*? if <1.21.1
     //?}
     @Unique private static final String ftbquestsentityvis$KEY_USE_AS_QUEST_ICON = "entity_vis_use_as_quest_icon";
     @Unique private static final String ftbquestsentityvis$KEY_NBT = "entity_vis_nbt";
+    @Unique private static final String ftbquestsentityvis$KEY_TAG_CYCLE_MODE = "entity_vis_tag_cycle_mode";
+    @Unique private static final String ftbquestsentityvis$KEY_TAG_CYCLE_SECONDS = "entity_vis_tag_cycle_seconds";
 
     //? if <1.21.1 {
     @Shadow(remap = false)
@@ -42,7 +45,10 @@ public abstract class KillTaskMixin implements IKillTaskVisOptions/*? if <1.21.1
 
     //? if >=1.21.1 {
     /*@Shadow(remap = false)
-    private ResourceLocation entityTypeId;*/
+    private ResourceLocation entityTypeId;
+
+    @Shadow(remap = false)
+    private TagKey<EntityType<?>> entityTypeTag;*/
     //?}
 
     @Unique private float ftbquestsentityvis$visSize = 1.0F;
@@ -58,6 +64,8 @@ public abstract class KillTaskMixin implements IKillTaskVisOptions/*? if <1.21.1
     //?}
     @Unique private boolean ftbquestsentityvis$useAsQuestIcon = false;
     @Unique private String ftbquestsentityvis$visNbt = "";
+    @Unique private OverrideMode ftbquestsentityvis$tagCycleMode = OverrideMode.USE_GLOBAL;
+    @Unique private float ftbquestsentityvis$tagCycleSeconds = 0.0F;
 
     @Override public float ftbquestsentityvis$getVisSize() { return ftbquestsentityvis$visSize; }
     @Override public void ftbquestsentityvis$setVisSize(float size) { this.ftbquestsentityvis$visSize = size; }
@@ -94,6 +102,21 @@ public abstract class KillTaskMixin implements IKillTaskVisOptions/*? if <1.21.1
     @Override public String ftbquestsentityvis$getVisNbt() { return ftbquestsentityvis$visNbt; }
     @Override public void ftbquestsentityvis$setVisNbt(String nbt) { this.ftbquestsentityvis$visNbt = nbt == null ? "" : nbt; }
 
+    @Override public OverrideMode ftbquestsentityvis$getTagCycleMode() { return ftbquestsentityvis$tagCycleMode; }
+    @Override public void ftbquestsentityvis$setTagCycleMode(OverrideMode mode) { this.ftbquestsentityvis$tagCycleMode = mode; }
+
+    @Override public float ftbquestsentityvis$getTagCycleSeconds() { return ftbquestsentityvis$tagCycleSeconds; }
+    @Override public void ftbquestsentityvis$setTagCycleSeconds(float seconds) { this.ftbquestsentityvis$tagCycleSeconds = seconds; }
+
+    @Override
+    public boolean ftbquestsentityvis$isTagTarget() {
+        //? if >=1.21.1 {
+        /*return entityTypeTag != null;*/
+        //?} else {
+        return ftbquestsentityvis$useTag && entity != null;
+        //?}
+    }
+
     @Override
     public ResourceLocation ftbquestsentityvis$getVisEntityId() {
         //? if >=1.21.1 {
@@ -124,6 +147,8 @@ public abstract class KillTaskMixin implements IKillTaskVisOptions/*? if <1.21.1
         if (!ftbquestsentityvis$visNbt.isEmpty()) {
             nbt.putString(ftbquestsentityvis$KEY_NBT, ftbquestsentityvis$visNbt);
         }
+        nbt.putString(ftbquestsentityvis$KEY_TAG_CYCLE_MODE, ftbquestsentityvis$tagCycleMode.name());
+        nbt.putFloat(ftbquestsentityvis$KEY_TAG_CYCLE_SECONDS, ftbquestsentityvis$tagCycleSeconds);
     }
 
     @Inject(method = "readData", at = @At("TAIL"), remap = false)
@@ -145,6 +170,8 @@ public abstract class KillTaskMixin implements IKillTaskVisOptions/*? if <1.21.1
         //?}
         ftbquestsentityvis$useAsQuestIcon = nbt.contains(ftbquestsentityvis$KEY_USE_AS_QUEST_ICON) && nbt.getBoolean(ftbquestsentityvis$KEY_USE_AS_QUEST_ICON);
         ftbquestsentityvis$visNbt = nbt.contains(ftbquestsentityvis$KEY_NBT) ? nbt.getString(ftbquestsentityvis$KEY_NBT) : "";
+        ftbquestsentityvis$tagCycleMode = nbt.contains(ftbquestsentityvis$KEY_TAG_CYCLE_MODE) ? OverrideMode.fromName(nbt.getString(ftbquestsentityvis$KEY_TAG_CYCLE_MODE)) : OverrideMode.USE_GLOBAL;
+        ftbquestsentityvis$tagCycleSeconds = nbt.contains(ftbquestsentityvis$KEY_TAG_CYCLE_SECONDS) ? nbt.getFloat(ftbquestsentityvis$KEY_TAG_CYCLE_SECONDS) : 0.0F;
     }
 
     @Inject(method = "writeNetData", at = @At("TAIL"), remap = false)
@@ -166,6 +193,8 @@ public abstract class KillTaskMixin implements IKillTaskVisOptions/*? if <1.21.1
         //?}
         buf.writeBoolean(ftbquestsentityvis$useAsQuestIcon);
         buf.writeUtf(ftbquestsentityvis$visNbt, Short.MAX_VALUE);
+        buf.writeUtf(ftbquestsentityvis$tagCycleMode.name());
+        buf.writeFloat(ftbquestsentityvis$tagCycleSeconds);
     }
 
     @Inject(method = "readNetData", at = @At("TAIL"), remap = false)
@@ -187,6 +216,8 @@ public abstract class KillTaskMixin implements IKillTaskVisOptions/*? if <1.21.1
         //?}
         ftbquestsentityvis$useAsQuestIcon = buf.readBoolean();
         ftbquestsentityvis$visNbt = buf.readUtf(Short.MAX_VALUE);
+        ftbquestsentityvis$tagCycleMode = OverrideMode.fromName(buf.readUtf());
+        ftbquestsentityvis$tagCycleSeconds = buf.readFloat();
     }
 
     //? if <1.21.1 {

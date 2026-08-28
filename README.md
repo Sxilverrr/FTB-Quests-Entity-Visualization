@@ -6,11 +6,14 @@ This mod replaces the boring spawn‑egg icon in a kill task with the actual ent
 
 Each task has its own size, X/Y offset, and rotation options, which are added into the FTB Quests task editor.
 
+Kill and observation tasks that target an entity type tag cycle through every entity in that tag.
+
 Config:
 - Toggle spin, idle, and walk animation defaults.
 - Spin speed multiplier
 - Camera tilt
 - Full‑bright rendering toggle
+- Entity tag cycling toggle and cycle speed
 
 Compatibility:
 Requires FTB Quests and FTB Library.
