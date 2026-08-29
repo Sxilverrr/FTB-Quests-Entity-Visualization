@@ -2,6 +2,7 @@ package com.sxilverr.ftbquestsentityvis.client;
 import com.sxilverr.ftbquestsentityvis.ModUtil;
 
 import com.sxilverr.ftbquestsentityvis.duck.IKillTaskVisOptions;
+import com.sxilverr.ftbquestsentityvis.duck.IQuestVisOptions;
 import com.sxilverr.ftbquestsentityvis.duck.ITaskIconVisOptions;
 import com.sxilverr.ftbquestsentityvis.duck.OverrideMode;
 import com.sxilverr.ftbquestsentityvis.duck.SilhouetteMode;
@@ -10,6 +11,8 @@ import dev.ftb.mods.ftblibrary.config.NameMap;
 import dev.ftb.mods.ftblibrary.config.ui.EditConfigScreen;
 import dev.ftb.mods.ftbquests.client.gui.quests.QuestScreen;
 import dev.ftb.mods.ftbquests.net.EditObjectMessage;
+import dev.ftb.mods.ftbquests.quest.Quest;
+import dev.ftb.mods.ftbquests.quest.QuestObjectBase;
 import dev.ftb.mods.ftbquests.quest.task.Task;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -21,10 +24,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Environment(EnvType.CLIENT)
-public final class TaskEntityIconScreen {
+public final class EntityIconScreen {
     private static final ResourceLocation DEFAULT_ENTITY = ModUtil.rl("minecraft:pig");
+    private static final String TASK_TITLE = "ftbquestsentityvis.edit_entity_icon";
+    private static final String QUEST_TITLE = "ftbquestsentityvis.edit_quest_entity_icon";
 
-    private TaskEntityIconScreen() {
+    private EntityIconScreen() {
     }
 
     public static void openGeneric(QuestScreen questScreen, Task task) {
@@ -42,7 +47,7 @@ public final class TaskEntityIconScreen {
         holder.silhouetteMode = opts.ftbquestsentityvis$getIconSilhouetteMode();
         holder.useAsQuestIcon = opts.ftbquestsentityvis$getIconUseAsQuestIcon();
         holder.nbt = opts.ftbquestsentityvis$getIconNbt();
-        openEditor(questScreen, task, holder, () -> {
+        openEditor(questScreen, task, holder, TASK_TITLE, () -> {
             opts.ftbquestsentityvis$setIconEntityId(holder.entityId);
             opts.ftbquestsentityvis$setIconVisSize(holder.size);
             opts.ftbquestsentityvis$setIconVisOffsetX(holder.offsetX);
@@ -63,13 +68,7 @@ public final class TaskEntityIconScreen {
         ITaskIconVisOptions opts = (ITaskIconVisOptions) task;
         opts.ftbquestsentityvis$setIconEntityEnabled(false);
         opts.ftbquestsentityvis$setIconDirty(true);
-        task.clearCachedData();
-        //? if >=1.21.1 {
-        /*EditObjectMessage.sendToServer(task);*/
-        //?} else {
-        new EditObjectMessage(task).sendToServer();
-        //?}
-        questScreen.openGui();
+        save(questScreen, task);
     }
 
     public static void openEntityTask(QuestScreen questScreen, Task task) {
@@ -90,7 +89,7 @@ public final class TaskEntityIconScreen {
         holder.isTagTarget = opts.ftbquestsentityvis$isTagTarget();
         holder.tagCycleMode = opts.ftbquestsentityvis$getTagCycleMode();
         holder.tagCycleSeconds = opts.ftbquestsentityvis$getTagCycleSeconds();
-        openEditor(questScreen, task, holder, () -> {
+        openEditor(questScreen, task, holder, TASK_TITLE, () -> {
             opts.ftbquestsentityvis$setVisSize(holder.size);
             opts.ftbquestsentityvis$setVisOffsetX(holder.offsetX);
             opts.ftbquestsentityvis$setVisOffsetY(holder.offsetY);
@@ -106,22 +105,56 @@ public final class TaskEntityIconScreen {
         });
     }
 
-    private static void openEditor(QuestScreen questScreen, Task task, Holder holder, Runnable apply) {
+    public static void openQuest(QuestScreen questScreen, Quest quest) {
+        IQuestVisOptions opts = (IQuestVisOptions) (Object) quest;
+        Holder holder = new Holder();
+        holder.hasEntityPicker = true;
+        holder.hasQuestIconToggle = false;
+        holder.entityId = opts.ftbquestsentityvis$getQuestIconEntityId() != null ? opts.ftbquestsentityvis$getQuestIconEntityId() : DEFAULT_ENTITY;
+        holder.size = opts.ftbquestsentityvis$getQuestIconVisSize();
+        holder.offsetX = opts.ftbquestsentityvis$getQuestIconVisOffsetX();
+        holder.offsetY = opts.ftbquestsentityvis$getQuestIconVisOffsetY();
+        holder.rotation = opts.ftbquestsentityvis$getQuestIconVisRotation();
+        holder.spinMode = opts.ftbquestsentityvis$getQuestIconSpinMode();
+        holder.idleMode = opts.ftbquestsentityvis$getQuestIconIdleMode();
+        holder.walkMode = opts.ftbquestsentityvis$getQuestIconWalkMode();
+        holder.silhouetteMode = opts.ftbquestsentityvis$getQuestIconSilhouetteMode();
+        holder.nbt = opts.ftbquestsentityvis$getQuestIconNbt();
+        openEditor(questScreen, quest, holder, QUEST_TITLE, () -> {
+            opts.ftbquestsentityvis$setQuestIconEntityId(holder.entityId);
+            opts.ftbquestsentityvis$setQuestIconVisSize(holder.size);
+            opts.ftbquestsentityvis$setQuestIconVisOffsetX(holder.offsetX);
+            opts.ftbquestsentityvis$setQuestIconVisOffsetY(holder.offsetY);
+            opts.ftbquestsentityvis$setQuestIconVisRotation(holder.rotation);
+            opts.ftbquestsentityvis$setQuestIconSpinMode(holder.spinMode);
+            opts.ftbquestsentityvis$setQuestIconIdleMode(holder.idleMode);
+            opts.ftbquestsentityvis$setQuestIconWalkMode(holder.walkMode);
+            opts.ftbquestsentityvis$setQuestIconSilhouetteMode(holder.silhouetteMode);
+            opts.ftbquestsentityvis$setQuestIconNbt(holder.nbt);
+            opts.ftbquestsentityvis$setQuestIconEntityEnabled(true);
+            opts.ftbquestsentityvis$setQuestIconDirty(true);
+        });
+    }
+
+    public static void removeQuest(QuestScreen questScreen, Quest quest) {
+        IQuestVisOptions opts = (IQuestVisOptions) (Object) quest;
+        opts.ftbquestsentityvis$setQuestIconEntityEnabled(false);
+        opts.ftbquestsentityvis$setQuestIconDirty(true);
+        save(questScreen, quest);
+    }
+
+    private static void openEditor(QuestScreen questScreen, QuestObjectBase object, Holder holder, String titleKey, Runnable apply) {
         ConfigGroup group = new ConfigGroup("ftbquestsentityvis", accepted -> {
             if (accepted) {
                 apply.run();
-                task.clearCachedData();
-                //? if >=1.21.1 {
-                /*EditObjectMessage.sendToServer(task);*/
-                //?} else {
-                new EditObjectMessage(task).sendToServer();
-                //?}
+                save(questScreen, object);
+            } else {
+                questScreen.openGui();
             }
-            questScreen.openGui();
         }) {
             @Override
             public Component getName() {
-                return Component.translatable("ftbquestsentityvis.edit_entity_icon");
+                return Component.translatable(titleKey);
             }
         };
 
@@ -130,13 +163,24 @@ public final class TaskEntityIconScreen {
         new EditConfigScreen(group) {
             @Override
             public Component getTitle() {
-                return Component.translatable("ftbquestsentityvis.edit_entity_icon");
+                return Component.translatable(titleKey);
             }
         }.openGui();
     }
 
+    private static void save(QuestScreen questScreen, QuestObjectBase object) {
+        object.clearCachedData();
+        //? if >=1.21.1 {
+        /*EditObjectMessage.sendToServer(object);*/
+        //?} else {
+        new EditObjectMessage(object).sendToServer();
+        //?}
+        questScreen.openGui();
+    }
+
     private static final class Holder {
         private boolean hasEntityPicker;
+        private boolean hasQuestIconToggle = true;
         private ResourceLocation entityId = DEFAULT_ENTITY;
         private float size = 1.0F;
         private float offsetX = 0.0F;
@@ -185,8 +229,10 @@ public final class TaskEntityIconScreen {
             config.addEnum("silhouette_mode", silhouetteMode, v -> silhouetteMode = v, silhouetteNameMap(), SilhouetteMode.NONE)
                     .setNameKey("ftbquestsentityvis.config.silhouette_mode");
 
-            config.addBool("use_as_quest_icon", useAsQuestIcon, v -> useAsQuestIcon = v, false)
-                    .setNameKey("ftbquestsentityvis.config.use_as_quest_icon");
+            if (hasQuestIconToggle) {
+                config.addBool("use_as_quest_icon", useAsQuestIcon, v -> useAsQuestIcon = v, false)
+                        .setNameKey("ftbquestsentityvis.config.use_as_quest_icon");
+            }
 
             if (isTagTarget) {
                 config.addEnum("tag_cycle_mode", tagCycleMode, v -> tagCycleMode = v, overrideNameMap("tag_cycle_mode"), OverrideMode.USE_GLOBAL)

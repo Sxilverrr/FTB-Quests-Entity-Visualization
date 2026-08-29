@@ -3,6 +3,9 @@
   "ftbquestsentityvis.show_entity_as_icon": "Show Entity as Task Icon",
   "ftbquestsentityvis.edit_entity_icon": "Edit Entity Icon",
   "ftbquestsentityvis.remove_entity_icon": "Remove Entity Icon",
+  "ftbquestsentityvis.show_entity_as_quest_icon": "Show Entity as Quest Icon",
+  "ftbquestsentityvis.edit_quest_entity_icon": "Edit Quest Entity Icon",
+  "ftbquestsentityvis.remove_quest_entity_icon": "Remove Quest Entity Icon",
 
   "ftbquestsentityvis.config.entity": "Entity",
   "ftbquestsentityvis.config.nbt": "NBT Data",

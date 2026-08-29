@@ -1,13 +1,15 @@
 package com.sxilverr.ftbquestsentityvis.mixin;
 
-import com.sxilverr.ftbquestsentityvis.client.TaskEntityIconScreen;
+import com.sxilverr.ftbquestsentityvis.client.EntityIconScreen;
 import com.sxilverr.ftbquestsentityvis.duck.IKillTaskVisOptions;
+import com.sxilverr.ftbquestsentityvis.duck.IQuestVisOptions;
 import com.sxilverr.ftbquestsentityvis.duck.ITaskIconVisOptions;
 import dev.ftb.mods.ftblibrary.icon.Icon;
 import dev.ftb.mods.ftblibrary.icon.ItemIcon;
 import dev.ftb.mods.ftblibrary.ui.ContextMenuItem;
 import dev.ftb.mods.ftbquests.client.gui.ContextMenuBuilder;
 import dev.ftb.mods.ftbquests.client.gui.quests.QuestScreen;
+import dev.ftb.mods.ftbquests.quest.Quest;
 import dev.ftb.mods.ftbquests.quest.QuestObjectBase;
 import dev.ftb.mods.ftbquests.quest.task.Task;
 import net.minecraft.network.chat.Component;
@@ -37,39 +39,66 @@ public abstract class ContextMenuBuilderMixin {
                     target = "Ldev/ftb/mods/ftblibrary/ui/BaseScreen;openContextMenu(Ljava/util/List;)Ldev/ftb/mods/ftblibrary/ui/ContextMenu;",
                     remap = false),
             remap = false)
-    private List<ContextMenuItem> ftbquestsentityvis$addTaskEntityIcon(List<ContextMenuItem> menu) {
-        if (!(object instanceof Task task)) {
-            return menu;
-        }
-
+    private List<ContextMenuItem> ftbquestsentityvis$addEntityIconItems(List<ContextMenuItem> menu) {
         List<ContextMenuItem> items = new ArrayList<>();
-        if (object instanceof IKillTaskVisOptions) {
-            items.add(new ContextMenuItem(
-                    Component.translatable("ftbquestsentityvis.edit_entity_icon"),
-                    ftbquestsentityvis$SHOW_ENTITY_ICON,
-                    b -> TaskEntityIconScreen.openEntityTask(screen, task)));
+        if (object instanceof Task task) {
+            ftbquestsentityvis$taskItems(items, task);
+        } else if (object instanceof Quest quest) {
+            ftbquestsentityvis$questItems(items, quest);
         } else {
-            ITaskIconVisOptions opts = (ITaskIconVisOptions) (Object) task;
-            if (opts.ftbquestsentityvis$getIconEntityEnabled()) {
-                items.add(new ContextMenuItem(
-                        Component.translatable("ftbquestsentityvis.edit_entity_icon"),
-                        ftbquestsentityvis$SHOW_ENTITY_ICON,
-                        b -> TaskEntityIconScreen.openGeneric(screen, task)));
-                items.add(new ContextMenuItem(
-                        Component.translatable("ftbquestsentityvis.remove_entity_icon"),
-                        ftbquestsentityvis$REMOVE_ICON,
-                        b -> TaskEntityIconScreen.removeGeneric(screen, task)));
-            } else {
-                items.add(new ContextMenuItem(
-                        Component.translatable("ftbquestsentityvis.show_entity_as_icon"),
-                        ftbquestsentityvis$SHOW_ENTITY_ICON,
-                        b -> TaskEntityIconScreen.openGeneric(screen, task)));
-            }
+            return menu;
         }
 
         List<ContextMenuItem> copy = new ArrayList<>(menu);
         copy.addAll(ftbquestsentityvis$insertIndex(copy), items);
         return copy;
+    }
+
+    @Unique
+    private void ftbquestsentityvis$taskItems(List<ContextMenuItem> items, Task task) {
+        if (task instanceof IKillTaskVisOptions) {
+            items.add(new ContextMenuItem(
+                    Component.translatable("ftbquestsentityvis.edit_entity_icon"),
+                    ftbquestsentityvis$SHOW_ENTITY_ICON,
+                    b -> EntityIconScreen.openEntityTask(screen, task)));
+            return;
+        }
+        ITaskIconVisOptions opts = (ITaskIconVisOptions) (Object) task;
+        if (opts.ftbquestsentityvis$getIconEntityEnabled()) {
+            items.add(new ContextMenuItem(
+                    Component.translatable("ftbquestsentityvis.edit_entity_icon"),
+                    ftbquestsentityvis$SHOW_ENTITY_ICON,
+                    b -> EntityIconScreen.openGeneric(screen, task)));
+            items.add(new ContextMenuItem(
+                    Component.translatable("ftbquestsentityvis.remove_entity_icon"),
+                    ftbquestsentityvis$REMOVE_ICON,
+                    b -> EntityIconScreen.removeGeneric(screen, task)));
+        } else {
+            items.add(new ContextMenuItem(
+                    Component.translatable("ftbquestsentityvis.show_entity_as_icon"),
+                    ftbquestsentityvis$SHOW_ENTITY_ICON,
+                    b -> EntityIconScreen.openGeneric(screen, task)));
+        }
+    }
+
+    @Unique
+    private void ftbquestsentityvis$questItems(List<ContextMenuItem> items, Quest quest) {
+        IQuestVisOptions opts = (IQuestVisOptions) (Object) quest;
+        if (opts.ftbquestsentityvis$getQuestIconEntityEnabled()) {
+            items.add(new ContextMenuItem(
+                    Component.translatable("ftbquestsentityvis.edit_quest_entity_icon"),
+                    ftbquestsentityvis$SHOW_ENTITY_ICON,
+                    b -> EntityIconScreen.openQuest(screen, quest)));
+            items.add(new ContextMenuItem(
+                    Component.translatable("ftbquestsentityvis.remove_quest_entity_icon"),
+                    ftbquestsentityvis$REMOVE_ICON,
+                    b -> EntityIconScreen.removeQuest(screen, quest)));
+        } else {
+            items.add(new ContextMenuItem(
+                    Component.translatable("ftbquestsentityvis.show_entity_as_quest_icon"),
+                    ftbquestsentityvis$SHOW_ENTITY_ICON,
+                    b -> EntityIconScreen.openQuest(screen, quest)));
+        }
     }
 
     @Unique
