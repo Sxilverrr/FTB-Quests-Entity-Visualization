@@ -94,6 +94,7 @@ tasks.processResources {
         "version" to mod.version,
         "minecraft" to common.mod.prop("mc_dep_forgelike"),
         "ftb_quests_dep" to common.mod.prop("ftb_quests_dep_forgelike"),
+        "ftb_library_dep" to common.mod.prop("ftb_library_dep_forgelike"),
         "pack_format" to common.mod.prop("pack_format")
     )
 }

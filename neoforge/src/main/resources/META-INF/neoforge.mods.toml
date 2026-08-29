@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "*"
+loaderVersion = "[4,)"
 license = "MIT"
 issueTrackerURL = "https://www.curseforge.com/minecraft/mc-mods/ftb-quests-entity-visualization"
 
@@ -18,7 +18,7 @@ config = "ftbquestsentityvis.mixins.json"
 [[dependencies.${id}]]
 modId = "neoforge"
 type = "required"
-versionRange = "*"
+versionRange = "[21.1,)"
 ordering = "NONE"
 side = "BOTH"
 
@@ -33,6 +33,20 @@ side = "BOTH"
 modId = "ftbquests"
 type = "required"
 versionRange = "${ftb_quests_dep}"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.${id}]]
+modId = "ftblibrary"
+type = "required"
+versionRange = "${ftb_library_dep}"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.${id}]]
+modId = "questsadditions"
+type = "optional"
+versionRange = "*"
 ordering = "AFTER"
 side = "BOTH"
 
