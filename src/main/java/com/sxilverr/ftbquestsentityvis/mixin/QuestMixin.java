@@ -29,6 +29,7 @@ public abstract class QuestMixin implements IQuestVisOptions {
     @Unique private static final String ftbquestsentityvis$KEY_WALK_MODE = "walk_mode";
     @Unique private static final String ftbquestsentityvis$KEY_SILHOUETTE_MODE = "silhouette_mode";
     @Unique private static final String ftbquestsentityvis$KEY_NBT = "nbt";
+    @Unique private static final String ftbquestsentityvis$KEY_CYCLE_SECONDS = "cycle_seconds";
 
     @Unique private float ftbquestsentityvis$questVisSize = 1.0F;
 
@@ -43,6 +44,7 @@ public abstract class QuestMixin implements IQuestVisOptions {
     @Unique private OverrideMode ftbquestsentityvis$iconWalkMode = OverrideMode.USE_GLOBAL;
     @Unique private SilhouetteMode ftbquestsentityvis$iconSilhouetteMode = SilhouetteMode.NONE;
     @Unique private String ftbquestsentityvis$iconNbt = "";
+    @Unique private float ftbquestsentityvis$iconCycleSeconds = 0.0F;
     @Unique private boolean ftbquestsentityvis$iconDirty = false;
 
     @Override public float ftbquestsentityvis$getQuestVisSize() { return ftbquestsentityvis$questVisSize; }
@@ -81,6 +83,9 @@ public abstract class QuestMixin implements IQuestVisOptions {
     @Override public String ftbquestsentityvis$getQuestIconNbt() { return ftbquestsentityvis$iconNbt; }
     @Override public void ftbquestsentityvis$setQuestIconNbt(String nbt) { this.ftbquestsentityvis$iconNbt = nbt == null ? "" : nbt; this.ftbquestsentityvis$iconDirty = true; }
 
+    @Override public float ftbquestsentityvis$getQuestIconCycleSeconds() { return ftbquestsentityvis$iconCycleSeconds; }
+    @Override public void ftbquestsentityvis$setQuestIconCycleSeconds(float seconds) { this.ftbquestsentityvis$iconCycleSeconds = seconds; this.ftbquestsentityvis$iconDirty = true; }
+
     @Override public boolean ftbquestsentityvis$isQuestIconDirty() { return ftbquestsentityvis$iconDirty; }
     @Override public void ftbquestsentityvis$setQuestIconDirty(boolean dirty) { this.ftbquestsentityvis$iconDirty = dirty; }
 
@@ -110,6 +115,7 @@ public abstract class QuestMixin implements IQuestVisOptions {
         if (!ftbquestsentityvis$iconNbt.isEmpty()) {
             tag.putString(ftbquestsentityvis$KEY_NBT, ftbquestsentityvis$iconNbt);
         }
+        tag.putFloat(ftbquestsentityvis$KEY_CYCLE_SECONDS, ftbquestsentityvis$iconCycleSeconds);
         nbt.put(ftbquestsentityvis$KEY_ROOT, tag);
     }
 
@@ -139,6 +145,7 @@ public abstract class QuestMixin implements IQuestVisOptions {
         ftbquestsentityvis$iconWalkMode = OverrideMode.fromName(tag.getString(ftbquestsentityvis$KEY_WALK_MODE));
         ftbquestsentityvis$iconSilhouetteMode = SilhouetteMode.fromName(tag.getString(ftbquestsentityvis$KEY_SILHOUETTE_MODE));
         ftbquestsentityvis$iconNbt = tag.contains(ftbquestsentityvis$KEY_NBT) ? tag.getString(ftbquestsentityvis$KEY_NBT) : "";
+        ftbquestsentityvis$iconCycleSeconds = tag.contains(ftbquestsentityvis$KEY_CYCLE_SECONDS) ? tag.getFloat(ftbquestsentityvis$KEY_CYCLE_SECONDS) : 0.0F;
     }
 
     @Inject(method = "writeNetData", at = @At("TAIL"), remap = false)
@@ -163,6 +170,7 @@ public abstract class QuestMixin implements IQuestVisOptions {
         buf.writeUtf(ftbquestsentityvis$iconWalkMode.name());
         buf.writeUtf(ftbquestsentityvis$iconSilhouetteMode.name());
         buf.writeUtf(ftbquestsentityvis$iconNbt, Short.MAX_VALUE);
+        buf.writeFloat(ftbquestsentityvis$iconCycleSeconds);
     }
 
     @Inject(method = "readNetData", at = @At("TAIL"), remap = false)
@@ -183,6 +191,7 @@ public abstract class QuestMixin implements IQuestVisOptions {
         ftbquestsentityvis$iconWalkMode = OverrideMode.fromName(buf.readUtf());
         ftbquestsentityvis$iconSilhouetteMode = SilhouetteMode.fromName(buf.readUtf());
         ftbquestsentityvis$iconNbt = buf.readUtf(Short.MAX_VALUE);
+        ftbquestsentityvis$iconCycleSeconds = buf.readFloat();
         ftbquestsentityvis$iconDirty = true;
     }
 

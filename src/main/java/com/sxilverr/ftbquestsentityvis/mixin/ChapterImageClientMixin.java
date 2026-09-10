@@ -2,6 +2,7 @@ package com.sxilverr.ftbquestsentityvis.mixin;
 import com.sxilverr.ftbquestsentityvis.ModUtil;
 
 import com.sxilverr.ftbquestsentityvis.client.EntityIcon;
+import com.sxilverr.ftbquestsentityvis.client.EntityNbt;
 import com.sxilverr.ftbquestsentityvis.client.EntityVariants;
 import com.sxilverr.ftbquestsentityvis.duck.IEntityImageVisOptions;
 import com.sxilverr.ftbquestsentityvis.duck.OverrideMode;
@@ -58,7 +59,8 @@ public abstract class ChapterImageClientMixin {
                     opts.ftbquestsentityvis$getIdleMode(),
                     opts.ftbquestsentityvis$getWalkMode(),
                     silhouette,
-                    opts.ftbquestsentityvis$getNbt()
+                    opts.ftbquestsentityvis$getNbt(),
+                    opts.ftbquestsentityvis$getCycleSeconds()
             );
             opts.ftbquestsentityvis$setIconDirty(false);
         }
@@ -102,6 +104,11 @@ public abstract class ChapterImageClientMixin {
 
         EntityVariants.addNbtControls(config, opts.ftbquestsentityvis$getEntityId(),
                 opts.ftbquestsentityvis$getNbt(), opts::ftbquestsentityvis$setNbt);
+        if (EntityNbt.cycles(opts.ftbquestsentityvis$getNbt())) {
+            config.addDouble("cycle_seconds", opts.ftbquestsentityvis$getCycleSeconds(),
+                            v -> opts.ftbquestsentityvis$setCycleSeconds(v.floatValue()), 0.0D, 0.0D, 60.0D)
+                    .setNameKey("ftbquestsentityvis.config.cycle_seconds");
+        }
 
         config.addDouble("size", opts.ftbquestsentityvis$getVisSize(),
                         v -> opts.ftbquestsentityvis$setVisSize(v.floatValue()), 1.0D, 0.0D, 10.0D)

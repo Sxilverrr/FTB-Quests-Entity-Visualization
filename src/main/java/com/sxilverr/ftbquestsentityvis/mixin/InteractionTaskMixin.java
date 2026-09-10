@@ -25,6 +25,7 @@ public abstract class InteractionTaskMixin implements IKillTaskVisOptions {
     @Unique private static final String ftbquestsentityvis$KEY_SILHOUETTE_MODE = "entity_vis_silhouette_mode";
     @Unique private static final String ftbquestsentityvis$KEY_USE_AS_QUEST_ICON = "entity_vis_use_as_quest_icon";
     @Unique private static final String ftbquestsentityvis$KEY_NBT = "entity_vis_nbt";
+    @Unique private static final String ftbquestsentityvis$KEY_TAG_CYCLE_SECONDS = "entity_vis_tag_cycle_seconds";
 
     @Shadow(remap = false) public ResourceLocation entity;
 
@@ -38,6 +39,7 @@ public abstract class InteractionTaskMixin implements IKillTaskVisOptions {
     @Unique private SilhouetteMode ftbquestsentityvis$silhouetteMode = SilhouetteMode.NONE;
     @Unique private boolean ftbquestsentityvis$useAsQuestIcon = false;
     @Unique private String ftbquestsentityvis$visNbt = "";
+    @Unique private float ftbquestsentityvis$tagCycleSeconds = 0.0F;
 
     @Override public float ftbquestsentityvis$getVisSize() { return ftbquestsentityvis$visSize; }
     @Override public void ftbquestsentityvis$setVisSize(float size) { this.ftbquestsentityvis$visSize = size; }
@@ -69,6 +71,9 @@ public abstract class InteractionTaskMixin implements IKillTaskVisOptions {
     @Override public String ftbquestsentityvis$getVisNbt() { return ftbquestsentityvis$visNbt; }
     @Override public void ftbquestsentityvis$setVisNbt(String nbt) { this.ftbquestsentityvis$visNbt = nbt == null ? "" : nbt; }
 
+    @Override public float ftbquestsentityvis$getTagCycleSeconds() { return ftbquestsentityvis$tagCycleSeconds; }
+    @Override public void ftbquestsentityvis$setTagCycleSeconds(float seconds) { this.ftbquestsentityvis$tagCycleSeconds = seconds; }
+
     @Override public ResourceLocation ftbquestsentityvis$getVisEntityId() { return entity; }
 
     @Inject(method = "writeData", at = @At("TAIL"), remap = false)
@@ -85,6 +90,7 @@ public abstract class InteractionTaskMixin implements IKillTaskVisOptions {
         if (!ftbquestsentityvis$visNbt.isEmpty()) {
             nbt.putString(ftbquestsentityvis$KEY_NBT, ftbquestsentityvis$visNbt);
         }
+        nbt.putFloat(ftbquestsentityvis$KEY_TAG_CYCLE_SECONDS, ftbquestsentityvis$tagCycleSeconds);
     }
 
     @Inject(method = "readData", at = @At("TAIL"), remap = false)
@@ -99,6 +105,7 @@ public abstract class InteractionTaskMixin implements IKillTaskVisOptions {
         ftbquestsentityvis$silhouetteMode = nbt.contains(ftbquestsentityvis$KEY_SILHOUETTE_MODE) ? SilhouetteMode.fromName(nbt.getString(ftbquestsentityvis$KEY_SILHOUETTE_MODE)) : SilhouetteMode.NONE;
         ftbquestsentityvis$useAsQuestIcon = nbt.contains(ftbquestsentityvis$KEY_USE_AS_QUEST_ICON) && nbt.getBoolean(ftbquestsentityvis$KEY_USE_AS_QUEST_ICON);
         ftbquestsentityvis$visNbt = nbt.contains(ftbquestsentityvis$KEY_NBT) ? nbt.getString(ftbquestsentityvis$KEY_NBT) : "";
+        ftbquestsentityvis$tagCycleSeconds = nbt.contains(ftbquestsentityvis$KEY_TAG_CYCLE_SECONDS) ? nbt.getFloat(ftbquestsentityvis$KEY_TAG_CYCLE_SECONDS) : 0.0F;
     }
 
     @Inject(method = "writeNetData", at = @At("TAIL"), remap = false)
@@ -113,6 +120,7 @@ public abstract class InteractionTaskMixin implements IKillTaskVisOptions {
         buf.writeUtf(ftbquestsentityvis$silhouetteMode.name());
         buf.writeBoolean(ftbquestsentityvis$useAsQuestIcon);
         buf.writeUtf(ftbquestsentityvis$visNbt, Short.MAX_VALUE);
+        buf.writeFloat(ftbquestsentityvis$tagCycleSeconds);
     }
 
     @Inject(method = "readNetData", at = @At("TAIL"), remap = false)
@@ -127,5 +135,6 @@ public abstract class InteractionTaskMixin implements IKillTaskVisOptions {
         ftbquestsentityvis$silhouetteMode = SilhouetteMode.fromName(buf.readUtf());
         ftbquestsentityvis$useAsQuestIcon = buf.readBoolean();
         ftbquestsentityvis$visNbt = buf.readUtf(Short.MAX_VALUE);
+        ftbquestsentityvis$tagCycleSeconds = buf.readFloat();
     }
 }

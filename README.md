@@ -8,12 +8,14 @@ Each task has its own size, X/Y offset, and rotation options, which are added in
 
 Kill and observation tasks that target an entity type tag cycle through every entity in that tag.
 
+Any entity display can hold several NBT variants and cycle through them.
+
 Config:
 - Toggle spin, idle, and walk animation defaults.
 - Spin speed multiplier
 - Camera tilt
 - Full‑bright rendering toggle
-- Entity tag cycling toggle and cycle speed
+- Entity tag cycling toggle and cycle speed (the speed also applies to NBT variant cycling)
 
 Compatibility:
 Requires FTB Quests and FTB Library.

@@ -1,6 +1,5 @@
 package com.sxilverr.ftbquestsentityvis.client;
 
-import com.sxilverr.ftbquestsentityvis.Config;
 import com.sxilverr.ftbquestsentityvis.duck.OverrideMode;
 import dev.ftb.mods.ftblibrary.icon.Icon;
 import net.minecraft.client.Minecraft;
@@ -20,8 +19,6 @@ import java.util.function.BooleanSupplier;
 
 @Environment(EnvType.CLIENT)
 public class CyclingEntityIcon extends Icon {
-    private static final float MIN_CYCLE_SECONDS = 0.1F;
-
     private final TagKey<EntityType<?>> tag;
     private final float sizeMultiplier;
     private final float offsetX;
@@ -76,7 +73,7 @@ public class CyclingEntityIcon extends Icon {
         List<EntityIcon> built = new ArrayList<>();
         for (ResourceLocation id : entitiesIn(tag)) {
             built.add(new EntityIcon(id, sizeMultiplier, offsetX, offsetY, rotationOffset,
-                    spinMode, idleMode, walkMode, silhouetteCheck, nbt));
+                    spinMode, idleMode, walkMode, silhouetteCheck, nbt, cycleSeconds));
         }
         if (!built.isEmpty() || cachedIcons == null) {
             cachedIcons = built;
@@ -86,23 +83,13 @@ public class CyclingEntityIcon extends Icon {
         return cachedIcons;
     }
 
-    private float resolveCycleSeconds() {
-        float seconds = cycleSeconds > 0.0F ? cycleSeconds : (float) Config.tagCycleSeconds;
-        return Math.max(seconds, MIN_CYCLE_SECONDS);
-    }
-
-    private int activeIndex(int count) {
-        long intervalMs = Math.max((long) (resolveCycleSeconds() * 1000.0F), 1L);
-        return (int) Math.floorMod(System.currentTimeMillis() / intervalMs, (long) count);
-    }
-
     @Override
     public void draw(GuiGraphics graphics, int x, int y, int w, int h) {
         List<EntityIcon> icons = getIcons();
         if (icons.isEmpty()) {
             return;
         }
-        icons.get(icons.size() == 1 ? 0 : activeIndex(icons.size())).draw(graphics, x, y, w, h);
+        icons.get(EntityIcon.cycleIndex(cycleSeconds, icons.size())).draw(graphics, x, y, w, h);
     }
 
     @Override

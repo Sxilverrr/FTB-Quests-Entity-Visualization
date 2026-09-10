@@ -31,6 +31,7 @@ public class EntityComponent extends ImageComponent {
     public OverrideMode walkMode = OverrideMode.USE_GLOBAL;
     public boolean silhouette = false;
     public String nbt = "";
+    public float cycleSeconds = 0.0F;
 
     public EntityComponent() {
         setCompWidth(100);
@@ -53,6 +54,7 @@ public class EntityComponent extends ImageComponent {
         c.walkMode = OverrideMode.fromName(map.getOrDefault("walk", "USE_GLOBAL"));
         c.silhouette = "true".equals(map.get("silhouette"));
         c.nbt = decodeNbt(map.get("nbt"));
+        c.cycleSeconds = parseFloat(map.get("cycle"), 0.0F);
         c.setCompWidth(parseInt(map.get("width"), 100));
         c.setCompHeight(parseInt(map.get("height"), 100));
         c.setCompAlign(alignByName(map.getOrDefault("align", "center")));
@@ -62,7 +64,7 @@ public class EntityComponent extends ImageComponent {
 
     public void rebuildIcon() {
         setCompImage(new EntityIcon(entityId, size, offsetX, offsetY, rotation,
-                spinMode, idleMode, walkMode, silhouette ? () -> true : null, nbt));
+                spinMode, idleMode, walkMode, silhouette ? () -> true : null, nbt, cycleSeconds));
     }
 
     public void fillConfig(ConfigGroup config) {
@@ -76,6 +78,10 @@ public class EntityComponent extends ImageComponent {
                 .setNameKey("ftbquestsentityvis.config.entity");
 
         EntityVariants.addNbtControls(config, entityId, nbt, v -> nbt = v);
+        if (EntityNbt.cycles(nbt)) {
+            config.addDouble("cycle_seconds", cycleSeconds, v -> cycleSeconds = v.floatValue(), 0.0D, 0.0D, 60.0D)
+                    .setNameKey("ftbquestsentityvis.config.cycle_seconds");
+        }
 
         config.addDouble("size", size, v -> size = v.floatValue(), 1.0D, 0.0D, 10.0D)
                 .setNameKey("ftbquestsentityvis.config.size");
@@ -123,6 +129,9 @@ public class EntityComponent extends ImageComponent {
         }
         if (!nbt.isEmpty()) {
             sb.append(" nbt:").append(encodeNbt(nbt));
+        }
+        if (cycleSeconds > 0.0F) {
+            sb.append(" cycle:").append(cycleSeconds);
         }
         sb.append('}');
         return sb.toString();

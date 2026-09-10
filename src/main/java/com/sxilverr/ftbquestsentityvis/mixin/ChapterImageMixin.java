@@ -29,6 +29,7 @@ public abstract class ChapterImageMixin implements IEntityImageVisOptions {
     @Unique private static final String ftbquestsentityvis$KEY_WALK_MODE = "entity_vis_walk_mode";
     @Unique private static final String ftbquestsentityvis$KEY_SILHOUETTE = "entity_vis_silhouette";
     @Unique private static final String ftbquestsentityvis$KEY_NBT = "entity_vis_nbt";
+    @Unique private static final String ftbquestsentityvis$KEY_CYCLE_SECONDS = "entity_vis_cycle_seconds";
 
     @Unique private boolean ftbquestsentityvis$entityVis = false;
     @Unique private ResourceLocation ftbquestsentityvis$entityId = ftbquestsentityvis$DEFAULT_ENTITY;
@@ -41,6 +42,7 @@ public abstract class ChapterImageMixin implements IEntityImageVisOptions {
     @Unique private OverrideMode ftbquestsentityvis$walkMode = OverrideMode.USE_GLOBAL;
     @Unique private boolean ftbquestsentityvis$silhouette = false;
     @Unique private String ftbquestsentityvis$nbt = "";
+    @Unique private float ftbquestsentityvis$cycleSeconds = 0.0F;
     @Unique private boolean ftbquestsentityvis$iconDirty = true;
 
     @Override public boolean ftbquestsentityvis$isEntityVis() { return ftbquestsentityvis$entityVis; }
@@ -76,6 +78,9 @@ public abstract class ChapterImageMixin implements IEntityImageVisOptions {
     @Override public String ftbquestsentityvis$getNbt() { return ftbquestsentityvis$nbt; }
     @Override public void ftbquestsentityvis$setNbt(String nbt) { this.ftbquestsentityvis$nbt = nbt == null ? "" : nbt; this.ftbquestsentityvis$iconDirty = true; }
 
+    @Override public float ftbquestsentityvis$getCycleSeconds() { return ftbquestsentityvis$cycleSeconds; }
+    @Override public void ftbquestsentityvis$setCycleSeconds(float seconds) { this.ftbquestsentityvis$cycleSeconds = seconds; this.ftbquestsentityvis$iconDirty = true; }
+
     @Override public boolean ftbquestsentityvis$isIconDirty() { return ftbquestsentityvis$iconDirty; }
     @Override public void ftbquestsentityvis$setIconDirty(boolean dirty) { this.ftbquestsentityvis$iconDirty = dirty; }
 
@@ -101,6 +106,7 @@ public abstract class ChapterImageMixin implements IEntityImageVisOptions {
         if (!ftbquestsentityvis$nbt.isEmpty()) {
             nbt.putString(ftbquestsentityvis$KEY_NBT, ftbquestsentityvis$nbt);
         }
+        nbt.putFloat(ftbquestsentityvis$KEY_CYCLE_SECONDS, ftbquestsentityvis$cycleSeconds);
     }
 
     @Inject(method = "readData", at = @At("TAIL"), remap = false)
@@ -122,6 +128,7 @@ public abstract class ChapterImageMixin implements IEntityImageVisOptions {
             ftbquestsentityvis$walkMode = OverrideMode.fromName(nbt.getString(ftbquestsentityvis$KEY_WALK_MODE));
             ftbquestsentityvis$silhouette = nbt.getBoolean(ftbquestsentityvis$KEY_SILHOUETTE);
             ftbquestsentityvis$nbt = nbt.contains(ftbquestsentityvis$KEY_NBT) ? nbt.getString(ftbquestsentityvis$KEY_NBT) : "";
+            ftbquestsentityvis$cycleSeconds = nbt.contains(ftbquestsentityvis$KEY_CYCLE_SECONDS) ? nbt.getFloat(ftbquestsentityvis$KEY_CYCLE_SECONDS) : 0.0F;
         }
         ftbquestsentityvis$iconDirty = true;
     }
@@ -144,6 +151,7 @@ public abstract class ChapterImageMixin implements IEntityImageVisOptions {
             buf.writeUtf(ftbquestsentityvis$walkMode.name());
             buf.writeBoolean(ftbquestsentityvis$silhouette);
             buf.writeUtf(ftbquestsentityvis$nbt, Short.MAX_VALUE);
+            buf.writeFloat(ftbquestsentityvis$cycleSeconds);
         }
     }
 
@@ -165,6 +173,7 @@ public abstract class ChapterImageMixin implements IEntityImageVisOptions {
             ftbquestsentityvis$walkMode = OverrideMode.fromName(buf.readUtf());
             ftbquestsentityvis$silhouette = buf.readBoolean();
             ftbquestsentityvis$nbt = buf.readUtf(Short.MAX_VALUE);
+            ftbquestsentityvis$cycleSeconds = buf.readFloat();
         }
         ftbquestsentityvis$iconDirty = true;
     }

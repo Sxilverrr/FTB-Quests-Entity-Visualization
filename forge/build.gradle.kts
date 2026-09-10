@@ -51,6 +51,10 @@ dependencies {
     modCompileOnly("dev.architectury:architectury-forge:${common.mod.dep("architectury")}") { isTransitive = false }
     modCompileOnly("dev.ftb.mods:ftb-library-forge:${common.mod.dep("ftb_library")}") { isTransitive = false }
     modCompileOnly("dev.ftb.mods:ftb-quests-forge:${common.mod.dep("ftb_quests")}") { isTransitive = false }
+    modLocalRuntime("dev.architectury:architectury-forge:${common.mod.dep("architectury")}") { isTransitive = false }
+    modLocalRuntime("dev.ftb.mods:ftb-library-forge:${common.mod.dep("ftb_library")}") { isTransitive = false }
+    modLocalRuntime("dev.ftb.mods:ftb-teams-forge:${common.mod.dep("ftb_teams")}") { isTransitive = false }
+    modLocalRuntime("dev.ftb.mods:ftb-quests-forge:${common.mod.dep("ftb_quests")}") { isTransitive = false }
 
     commonBundle(project(common.path, "namedElements")) { isTransitive = false }
     shadowBundle(project(common.path, "transformProductionForge")) { isTransitive = false }

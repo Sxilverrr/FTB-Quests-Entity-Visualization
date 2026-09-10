@@ -47,6 +47,10 @@ public interface IEntityImageVisOptions {
 
     void ftbquestsentityvis$setNbt(String nbt);
 
+    float ftbquestsentityvis$getCycleSeconds();
+
+    void ftbquestsentityvis$setCycleSeconds(float seconds);
+
     boolean ftbquestsentityvis$isIconDirty();
 
     void ftbquestsentityvis$setIconDirty(boolean dirty);

@@ -83,7 +83,8 @@ public abstract class KillTaskClientMixin {
                 opts.ftbquestsentityvis$getIdleMode(),
                 opts.ftbquestsentityvis$getWalkMode(),
                 silhouette,
-                opts.ftbquestsentityvis$getVisNbt()
+                opts.ftbquestsentityvis$getVisNbt(),
+                opts.ftbquestsentityvis$getTagCycleSeconds()
         ));
     }
 

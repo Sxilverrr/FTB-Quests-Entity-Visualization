@@ -9,7 +9,11 @@
 
   "ftbquestsentityvis.config.entity": "Entity",
   "ftbquestsentityvis.config.nbt": "NBT Data",
+  "ftbquestsentityvis.config.nbt.tooltip": "One compound like {Color:5}, or a list like [{Color:5},{Color:11}] to cycle through several variants.",
   "ftbquestsentityvis.config.variant": "Variant",
+  "ftbquestsentityvis.config.variants": "Cycle Variants",
+  "ftbquestsentityvis.config.variants.tooltip": "Add two or more variants and the entity cycles through them.",
+  "ftbquestsentityvis.config.cycle_seconds": "Cycle Seconds (0 = Global)",
   "ftbquestsentityvis.config.size": "Entity Size",
   "ftbquestsentityvis.config.offset_x": "Entity X Offset",
   "ftbquestsentityvis.config.offset_y": "Entity Y Offset",
@@ -32,7 +36,6 @@
   "ftbquestsentityvis.config.tag_cycle_mode.use_global": "Use Global",
   "ftbquestsentityvis.config.tag_cycle_mode.force_on": "Always Cycle",
   "ftbquestsentityvis.config.tag_cycle_mode.force_off": "Never Cycle",
-  "ftbquestsentityvis.config.tag_cycle_seconds": "Tag Cycle Seconds (0 = Global)",
 
   "ftbquestsentityvis.config.silhouette": "Black Silhouette",
 
@@ -61,8 +64,8 @@
   "text.autoconfig.ftbquestsentityvis.option.walkAnimation": "Walk Animation",
   "text.autoconfig.ftbquestsentityvis.option.tagCycle": "Cycle Through Entity Tags",
   "text.autoconfig.ftbquestsentityvis.option.tagCycle.@Tooltip": "Kill and observation tasks that target an entity type tag cycle through every entity in that tag.",
-  "text.autoconfig.ftbquestsentityvis.option.tagCycleSeconds": "Tag Cycle Seconds",
-  "text.autoconfig.ftbquestsentityvis.option.tagCycleSeconds.@Tooltip": "Seconds each entity of a tag is shown before cycling.",
+  "text.autoconfig.ftbquestsentityvis.option.tagCycleSeconds": "Cycle Seconds",
+  "text.autoconfig.ftbquestsentityvis.option.tagCycleSeconds.@Tooltip": "Seconds each entity of a tag, or each NBT variant, is shown before cycling.",
   "text.autoconfig.ftbquestsentityvis.option.toastEntityIcons": "Entity Icons In Fancy Toasts",
   "text.autoconfig.ftbquestsentityvis.option.toastEntityIcons.@Tooltip": "Render the entity inside Fancy Toasts quest notifications instead of the quest book fallback."
 }

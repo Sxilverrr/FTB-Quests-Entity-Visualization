@@ -51,6 +51,10 @@ public interface IQuestVisOptions {
 
     void ftbquestsentityvis$setQuestIconNbt(String nbt);
 
+    float ftbquestsentityvis$getQuestIconCycleSeconds();
+
+    void ftbquestsentityvis$setQuestIconCycleSeconds(float seconds);
+
     boolean ftbquestsentityvis$isQuestIconDirty();
 
     void ftbquestsentityvis$setQuestIconDirty(boolean dirty);

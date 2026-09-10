@@ -51,7 +51,8 @@ public abstract class QuestObjectBaseClientMixin {
                     opts.ftbquestsentityvis$getIconIdleMode(),
                     opts.ftbquestsentityvis$getIconWalkMode(),
                     silhouette,
-                    opts.ftbquestsentityvis$getIconNbt()
+                    opts.ftbquestsentityvis$getIconNbt(),
+                    opts.ftbquestsentityvis$getIconCycleSeconds()
             );
             opts.ftbquestsentityvis$setIconDirty(false);
         }
@@ -79,7 +80,8 @@ public abstract class QuestObjectBaseClientMixin {
                     opts.ftbquestsentityvis$getQuestIconIdleMode(),
                     opts.ftbquestsentityvis$getQuestIconWalkMode(),
                     silhouette,
-                    opts.ftbquestsentityvis$getQuestIconNbt()
+                    opts.ftbquestsentityvis$getQuestIconNbt(),
+                    opts.ftbquestsentityvis$getQuestIconCycleSeconds()
             );
             opts.ftbquestsentityvis$setQuestIconDirty(false);
         }

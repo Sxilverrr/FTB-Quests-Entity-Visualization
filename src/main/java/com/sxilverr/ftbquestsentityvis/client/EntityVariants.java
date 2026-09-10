@@ -28,11 +28,14 @@ public final class EntityVariants {
             "Light Gray", "Cyan", "Purple", "Blue", "Brown", "Green", "Red", "Black"
     };
 
+    private static final Variant DEFAULT = new Variant("Default", "");
+
     private EntityVariants() {
     }
 
     public static void addNbtControls(ConfigGroup config, ResourceLocation entityId, String current, Consumer<String> setNbt) {
         String original = current == null ? "" : current.trim();
+        List<String> currentVariants = EntityNbt.split(original);
 
         config.addString("nbt", original, v -> {
             String nv = v == null ? "" : v.trim();
@@ -46,34 +49,64 @@ public final class EntityVariants {
             return;
         }
 
-        List<Variant> options = new ArrayList<>();
-        options.add(new Variant("Default", ""));
-        options.addAll(variants);
+        List<Variant> pickable = new ArrayList<>();
+        pickable.add(DEFAULT);
+        pickable.addAll(variants);
 
-        Variant selected = null;
-        for (Variant option : options) {
-            if (option.nbt().equals(original)) {
-                selected = option;
-                break;
-            }
-        }
-        if (selected == null) {
-            selected = new Variant("Custom", original);
+        List<Variant> options = new ArrayList<>(pickable);
+        Variant selected;
+        if (currentVariants.size() > 1) {
+            selected = new Variant("Cycling (" + currentVariants.size() + ")", original);
             options.add(selected);
+        } else {
+            selected = match(pickable, currentVariants.isEmpty() ? "" : currentVariants.get(0));
+            if (selected == null) {
+                selected = new Variant("Custom", original);
+                options.add(selected);
+            }
         }
 
         Variant def = selected;
-        NameMap<Variant> nameMap = NameMap.of(def, options)
-                .nameKey(Variant::label)
-                .icon(v -> new EntityIcon(entityId, 1.0F, 0.0F, 0.0F, 0.0F,
-                        OverrideMode.USE_GLOBAL, OverrideMode.USE_GLOBAL, OverrideMode.USE_GLOBAL, null, v.nbt()))
-                .create();
-        config.add("variant", new VariantConfig(entityId, options, nameMap), selected, v -> {
+        config.add("variant", new VariantConfig(entityId, options, nameMap(entityId, def, options)), selected, v -> {
             if (!v.nbt().equals(original)) {
                 setNbt.accept(v.nbt());
             }
         }, def)
                 .setNameKey("ftbquestsentityvis.config.variant");
+
+        List<Variant> cycle = new ArrayList<>();
+        for (String variant : currentVariants) {
+            Variant matched = match(pickable, variant);
+            cycle.add(matched != null ? matched : new Variant("Custom", variant));
+        }
+        config.addList("variants", cycle, new VariantConfig(entityId, pickable, nameMap(entityId, DEFAULT, pickable)), list -> {
+            List<String> nbts = new ArrayList<>(list.size());
+            for (Variant variant : list) {
+                nbts.add(variant.nbt());
+            }
+            String joined = EntityNbt.join(nbts);
+            if (!joined.equals(original)) {
+                setNbt.accept(joined);
+            }
+        }, DEFAULT)
+                .setNameKey("ftbquestsentityvis.config.variants");
+    }
+
+    private static Variant match(List<Variant> options, String nbt) {
+        for (Variant option : options) {
+            if (EntityNbt.sameCompound(option.nbt(), nbt)) {
+                return option;
+            }
+        }
+        return null;
+    }
+
+    private static NameMap<Variant> nameMap(ResourceLocation entityId, Variant def, List<Variant> options) {
+        return NameMap.of(def, options)
+                .nameKey(Variant::label)
+                .icon(v -> new EntityIcon(entityId, 1.0F, 0.0F, 0.0F, 0.0F,
+                        OverrideMode.USE_GLOBAL, OverrideMode.USE_GLOBAL, OverrideMode.USE_GLOBAL, null, v.nbt()))
+                .create();
     }
 
     public static List<Variant> forEntity(ResourceLocation entityId) {

@@ -47,6 +47,10 @@ public interface ITaskIconVisOptions {
 
     void ftbquestsentityvis$setIconNbt(String nbt);
 
+    float ftbquestsentityvis$getIconCycleSeconds();
+
+    void ftbquestsentityvis$setIconCycleSeconds(float seconds);
+
     boolean ftbquestsentityvis$getIconUseAsQuestIcon();
 
     void ftbquestsentityvis$setIconUseAsQuestIcon(boolean useAsQuestIcon);

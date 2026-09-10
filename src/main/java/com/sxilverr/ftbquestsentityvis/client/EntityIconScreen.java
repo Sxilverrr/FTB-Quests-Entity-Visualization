@@ -47,6 +47,7 @@ public final class EntityIconScreen {
         holder.silhouetteMode = opts.ftbquestsentityvis$getIconSilhouetteMode();
         holder.useAsQuestIcon = opts.ftbquestsentityvis$getIconUseAsQuestIcon();
         holder.nbt = opts.ftbquestsentityvis$getIconNbt();
+        holder.cycleSeconds = opts.ftbquestsentityvis$getIconCycleSeconds();
         openEditor(questScreen, task, holder, TASK_TITLE, () -> {
             opts.ftbquestsentityvis$setIconEntityId(holder.entityId);
             opts.ftbquestsentityvis$setIconVisSize(holder.size);
@@ -59,6 +60,7 @@ public final class EntityIconScreen {
             opts.ftbquestsentityvis$setIconSilhouetteMode(holder.silhouetteMode);
             opts.ftbquestsentityvis$setIconUseAsQuestIcon(holder.useAsQuestIcon);
             opts.ftbquestsentityvis$setIconNbt(holder.nbt);
+            opts.ftbquestsentityvis$setIconCycleSeconds(holder.cycleSeconds);
             opts.ftbquestsentityvis$setIconEntityEnabled(true);
             opts.ftbquestsentityvis$setIconDirty(true);
         });
@@ -88,7 +90,7 @@ public final class EntityIconScreen {
         holder.entityId = opts.ftbquestsentityvis$getVisEntityId();
         holder.isTagTarget = opts.ftbquestsentityvis$isTagTarget();
         holder.tagCycleMode = opts.ftbquestsentityvis$getTagCycleMode();
-        holder.tagCycleSeconds = opts.ftbquestsentityvis$getTagCycleSeconds();
+        holder.cycleSeconds = opts.ftbquestsentityvis$getTagCycleSeconds();
         openEditor(questScreen, task, holder, TASK_TITLE, () -> {
             opts.ftbquestsentityvis$setVisSize(holder.size);
             opts.ftbquestsentityvis$setVisOffsetX(holder.offsetX);
@@ -101,7 +103,7 @@ public final class EntityIconScreen {
             opts.ftbquestsentityvis$setUseAsQuestIcon(holder.useAsQuestIcon);
             opts.ftbquestsentityvis$setVisNbt(holder.nbt);
             opts.ftbquestsentityvis$setTagCycleMode(holder.tagCycleMode);
-            opts.ftbquestsentityvis$setTagCycleSeconds(holder.tagCycleSeconds);
+            opts.ftbquestsentityvis$setTagCycleSeconds(holder.cycleSeconds);
         });
     }
 
@@ -120,6 +122,7 @@ public final class EntityIconScreen {
         holder.walkMode = opts.ftbquestsentityvis$getQuestIconWalkMode();
         holder.silhouetteMode = opts.ftbquestsentityvis$getQuestIconSilhouetteMode();
         holder.nbt = opts.ftbquestsentityvis$getQuestIconNbt();
+        holder.cycleSeconds = opts.ftbquestsentityvis$getQuestIconCycleSeconds();
         openEditor(questScreen, quest, holder, QUEST_TITLE, () -> {
             opts.ftbquestsentityvis$setQuestIconEntityId(holder.entityId);
             opts.ftbquestsentityvis$setQuestIconVisSize(holder.size);
@@ -131,6 +134,7 @@ public final class EntityIconScreen {
             opts.ftbquestsentityvis$setQuestIconWalkMode(holder.walkMode);
             opts.ftbquestsentityvis$setQuestIconSilhouetteMode(holder.silhouetteMode);
             opts.ftbquestsentityvis$setQuestIconNbt(holder.nbt);
+            opts.ftbquestsentityvis$setQuestIconCycleSeconds(holder.cycleSeconds);
             opts.ftbquestsentityvis$setQuestIconEntityEnabled(true);
             opts.ftbquestsentityvis$setQuestIconDirty(true);
         });
@@ -194,7 +198,7 @@ public final class EntityIconScreen {
         private String nbt = "";
         private boolean isTagTarget = false;
         private OverrideMode tagCycleMode = OverrideMode.USE_GLOBAL;
-        private float tagCycleSeconds = 0.0F;
+        private float cycleSeconds = 0.0F;
 
         private void fillConfig(ConfigGroup config) {
             if (hasEntityPicker) {
@@ -237,8 +241,10 @@ public final class EntityIconScreen {
             if (isTagTarget) {
                 config.addEnum("tag_cycle_mode", tagCycleMode, v -> tagCycleMode = v, overrideNameMap("tag_cycle_mode"), OverrideMode.USE_GLOBAL)
                         .setNameKey("ftbquestsentityvis.config.tag_cycle_mode");
-                config.addDouble("tag_cycle_seconds", tagCycleSeconds, v -> tagCycleSeconds = v.floatValue(), 0.0D, 0.0D, 60.0D)
-                        .setNameKey("ftbquestsentityvis.config.tag_cycle_seconds");
+            }
+            if (isTagTarget || EntityNbt.cycles(nbt)) {
+                config.addDouble("cycle_seconds", cycleSeconds, v -> cycleSeconds = v.floatValue(), 0.0D, 0.0D, 60.0D)
+                        .setNameKey("ftbquestsentityvis.config.cycle_seconds");
             }
         }
 

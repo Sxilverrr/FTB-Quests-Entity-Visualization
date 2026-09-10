@@ -25,7 +25,7 @@ public final class NeoForgeClientConfig {
         IDLE_ANIMATION = builder.comment("Should mobs play idle animation?").define("idleAnimation", true);
         WALK_ANIMATION = builder.comment("Should mobs play walk animation?").define("walkAnimation", false);
         TAG_CYCLE = builder.comment("Cycle through every entity of an entity type tag?").define("tagCycle", true);
-        TAG_CYCLE_SECONDS = builder.comment("Seconds each entity of a tag is shown before cycling.").defineInRange("tagCycleSeconds", 2.0, 0.1, 60.0);
+        TAG_CYCLE_SECONDS = builder.comment("Seconds each entity of a tag, or each NBT variant, is shown before cycling.").defineInRange("tagCycleSeconds", 2.0, 0.1, 60.0);
         TOAST_ENTITY_ICONS = builder.comment("Render entity icons inside Fancy Toasts quest notifications?").define("toastEntityIcons", true);
         SPEC = builder.build();
     }

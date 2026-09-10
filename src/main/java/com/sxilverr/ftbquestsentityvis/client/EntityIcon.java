@@ -28,6 +28,7 @@ import net.minecraft.world.level.Level;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
+import java.util.List;
 import java.util.function.BooleanSupplier;
 
 @Environment(EnvType.CLIENT)
@@ -35,6 +36,7 @@ public class EntityIcon extends Icon {
     private static final long SPIN_PERIOD_MS = 15000L;
     private static final long ANIM_TICK_INTERVAL_MS = 50L;
     private static final float WALK_ANIM_SPEED = 0.6F;
+    private static final float MIN_CYCLE_SECONDS = 0.1F;
 
     private final ResourceLocation entityId;
     private final float sizeMultiplier;
@@ -46,10 +48,12 @@ public class EntityIcon extends Icon {
     private final OverrideMode walkMode;
     private final BooleanSupplier silhouetteCheck;
     private final String nbt;
+    private final List<String> variants;
+    private final float cycleSeconds;
 
-    private Entity cachedEntity;
+    private Entity[] cachedEntities;
+    private boolean[] creationFailed;
     private Level cachedLevel;
-    private boolean creationFailed;
     private long lastAnimTickMs;
 
     public EntityIcon(ResourceLocation entityId, float sizeMultiplier, float offsetX, float offsetY,
@@ -66,6 +70,12 @@ public class EntityIcon extends Icon {
     public EntityIcon(ResourceLocation entityId, float sizeMultiplier, float offsetX, float offsetY,
                       float rotationOffset, OverrideMode spinMode, OverrideMode idleMode, OverrideMode walkMode,
                       BooleanSupplier silhouetteCheck, String nbt) {
+        this(entityId, sizeMultiplier, offsetX, offsetY, rotationOffset, spinMode, idleMode, walkMode, silhouetteCheck, nbt, 0.0F);
+    }
+
+    public EntityIcon(ResourceLocation entityId, float sizeMultiplier, float offsetX, float offsetY,
+                      float rotationOffset, OverrideMode spinMode, OverrideMode idleMode, OverrideMode walkMode,
+                      BooleanSupplier silhouetteCheck, String nbt, float cycleSeconds) {
         this.entityId = entityId;
         this.sizeMultiplier = sizeMultiplier;
         this.offsetX = offsetX;
@@ -76,6 +86,21 @@ public class EntityIcon extends Icon {
         this.walkMode = walkMode;
         this.silhouetteCheck = silhouetteCheck;
         this.nbt = nbt == null ? "" : nbt.trim();
+        List<String> split = EntityNbt.split(this.nbt);
+        this.variants = split.isEmpty() ? List.of("") : split;
+        this.cycleSeconds = cycleSeconds;
+    }
+
+    public static long cycleIntervalMs(float cycleSeconds) {
+        float seconds = cycleSeconds > 0.0F ? cycleSeconds : (float) Config.tagCycleSeconds;
+        return Math.max((long) (Math.max(seconds, MIN_CYCLE_SECONDS) * 1000.0F), 1L);
+    }
+
+    public static int cycleIndex(float cycleSeconds, int count) {
+        if (count <= 1) {
+            return 0;
+        }
+        return (int) Math.floorMod(System.currentTimeMillis() / cycleIntervalMs(cycleSeconds), (long) count);
     }
 
     private Entity getEntity() {
@@ -84,42 +109,46 @@ public class EntityIcon extends Icon {
         if (level == null) {
             return null;
         }
-        if (cachedLevel != level) {
+        if (cachedLevel != level || cachedEntities == null) {
             cachedLevel = level;
-            cachedEntity = null;
-            creationFailed = false;
+            cachedEntities = new Entity[variants.size()];
+            creationFailed = new boolean[variants.size()];
             lastAnimTickMs = 0L;
         }
-        if (cachedEntity != null) {
-            return cachedEntity;
+        int index = cycleIndex(cycleSeconds, variants.size());
+        if (cachedEntities[index] != null) {
+            return cachedEntities[index];
         }
-        if (creationFailed) {
+        if (creationFailed[index]) {
             return null;
         }
         EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(entityId);
         if (type == null) {
-            creationFailed = true;
+            creationFailed[index] = true;
             return null;
         }
         try {
             Entity created = type.create(level);
             if (created != null) {
-                applyNbt(created);
-                cachedEntity = created;
+                applyNbt(created, variants.get(index));
+                cachedEntities[index] = created;
                 return created;
             }
         } catch (Throwable ignored) {
         }
-        creationFailed = true;
+        creationFailed[index] = true;
         return null;
     }
 
-    private void applyNbt(Entity entity) {
-        if (nbt.isEmpty()) {
+    private static void applyNbt(Entity entity, String variant) {
+        if (variant.isEmpty()) {
             return;
         }
         try {
-            CompoundTag tag = TagParser.parseTag(nbt);
+            CompoundTag tag = TagParser.parseTag(variant);
+            if (tag.isEmpty()) {
+                return;
+            }
             entity.load(tag);
             entity.setPos(0.0D, 0.0D, 0.0D);
             entity.setDeltaMovement(0.0D, 0.0D, 0.0D);
@@ -285,6 +314,7 @@ public class EntityIcon extends Icon {
                 && Float.compare(other.offsetX, offsetX) == 0
                 && Float.compare(other.offsetY, offsetY) == 0
                 && Float.compare(other.rotationOffset, rotationOffset) == 0
+                && Float.compare(other.cycleSeconds, cycleSeconds) == 0
                 && other.spinMode == spinMode
                 && other.idleMode == idleMode
                 && other.walkMode == walkMode
@@ -303,6 +333,7 @@ public class EntityIcon extends Icon {
         h = h * 31 + Float.hashCode(offsetX);
         h = h * 31 + Float.hashCode(offsetY);
         h = h * 31 + Float.hashCode(rotationOffset);
+        h = h * 31 + Float.hashCode(cycleSeconds);
         h = h * 31 + spinMode.ordinal();
         h = h * 31 + idleMode.ordinal();
         h = h * 31 + walkMode.ordinal();
