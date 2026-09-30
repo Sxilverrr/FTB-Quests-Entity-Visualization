@@ -11,7 +11,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 @Mod(FTBQuestsEntityVisualization.MODID)
 public final class FTBQuestsEntityVisualizationForge {
     public FTBQuestsEntityVisualizationForge() {
-        FTBQuestsEntityVisualization.init();
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         modBus.addListener(this::onConfig);
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ForgeClientConfig.SPEC, FTBQuestsEntityVisualization.MODID + "/client.toml");

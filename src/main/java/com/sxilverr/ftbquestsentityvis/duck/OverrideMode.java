@@ -12,12 +12,4 @@ public enum OverrideMode {
             case FORCE_OFF -> false;
         };
     }
-
-    public static OverrideMode fromName(String name) {
-        try {
-            return OverrideMode.valueOf(name);
-        } catch (IllegalArgumentException e) {
-            return USE_GLOBAL;
-        }
-    }
 }

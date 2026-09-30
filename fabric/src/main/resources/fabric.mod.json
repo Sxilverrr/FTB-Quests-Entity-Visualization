@@ -15,9 +15,6 @@
   "icon": "assets/${id}/icon.png",
   "environment": "*",
   "entrypoints": {
-    "main": [
-      "com.sxilverr.ftbquestsentityvis.fabric.FTBQuestsEntityVisualizationFabric"
-    ],
     "client": [
       "com.sxilverr.ftbquestsentityvis.fabric.client.FTBQuestsEntityVisualizationFabricClient"
     ],

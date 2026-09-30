@@ -1,6 +1,5 @@
 package com.sxilverr.ftbquestsentityvis.client;
 
-import com.sxilverr.ftbquestsentityvis.duck.OverrideMode;
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
 import dev.ftb.mods.ftblibrary.config.NameMap;
 import net.minecraft.client.Minecraft;
@@ -15,8 +14,11 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Environment(EnvType.CLIENT)
 public final class EntityVariants {
@@ -49,9 +51,7 @@ public final class EntityVariants {
             return;
         }
 
-        List<Variant> pickable = new ArrayList<>();
-        pickable.add(DEFAULT);
-        pickable.addAll(variants);
+        List<Variant> pickable = with(List.of(DEFAULT), variants.toArray(Variant[]::new));
 
         List<Variant> options = new ArrayList<>(pickable);
         Variant selected;
@@ -80,11 +80,7 @@ public final class EntityVariants {
             cycle.add(matched != null ? matched : new Variant("Custom", variant));
         }
         config.addList("variants", cycle, new VariantConfig(entityId, pickable, nameMap(entityId, DEFAULT, pickable)), list -> {
-            List<String> nbts = new ArrayList<>(list.size());
-            for (Variant variant : list) {
-                nbts.add(variant.nbt());
-            }
-            String joined = EntityNbt.join(nbts);
+            String joined = EntityNbt.join(list.stream().map(Variant::nbt).toList());
             if (!joined.equals(original)) {
                 setNbt.accept(joined);
             }
@@ -93,19 +89,13 @@ public final class EntityVariants {
     }
 
     private static Variant match(List<Variant> options, String nbt) {
-        for (Variant option : options) {
-            if (EntityNbt.sameCompound(option.nbt(), nbt)) {
-                return option;
-            }
-        }
-        return null;
+        return options.stream().filter(option -> EntityNbt.sameCompound(option.nbt(), nbt)).findFirst().orElse(null);
     }
 
     private static NameMap<Variant> nameMap(ResourceLocation entityId, Variant def, List<Variant> options) {
         return NameMap.of(def, options)
                 .nameKey(Variant::label)
-                .icon(v -> new EntityIcon(entityId, 1.0F, 0.0F, 0.0F, 0.0F,
-                        OverrideMode.USE_GLOBAL, OverrideMode.USE_GLOBAL, OverrideMode.USE_GLOBAL, null, v.nbt()))
+                .icon(v -> new EntityIcon(entityId, v.nbt()))
                 .create();
     }
 
@@ -116,8 +106,8 @@ public final class EntityVariants {
         List<Variant> list = new ArrayList<>(specificVariants(entityId));
         Entity probe = createProbe(entityId);
         if (probe instanceof LivingEntity) {
-            list.add(nametag("Dinnerbone", "Dinnerbone"));
-            list.add(nametag("Grumm", "Grumm"));
+            list.add(nametag("Dinnerbone"));
+            list.add(nametag("Grumm"));
             if (probe instanceof AgeableMob) {
                 list.add(new Variant("Baby", "{Age:-24000}"));
             }
@@ -130,18 +120,23 @@ public final class EntityVariants {
             return List.of();
         }
         return switch (entityId.getPath()) {
-            case "sheep" -> sheepVariants();
+            case "sheep" -> with(intVariants("Color", DYE_LABELS), nametag("jeb_"));
             case "shulker" -> intVariants("Color", DYE_LABELS);
-            case "rabbit" -> rabbitVariants();
+            case "rabbit" -> with(intVariants("RabbitType", "Brown", "White", "Black", "Black & White", "Gold", "Salt & Pepper"),
+                    new Variant("The Killer Bunny", "{RabbitType:99}"), nametag("Toast"));
             case "horse" -> intVariants("Variant", "White", "Creamy", "Chestnut", "Brown", "Black", "Gray", "Dark Brown");
             case "llama", "trader_llama" -> intVariants("Variant", "Creamy", "White", "Brown", "Gray");
             case "parrot" -> intVariants("Variant", "Red", "Blue", "Green", "Cyan", "Gray");
             case "axolotl" -> intVariants("Variant", "Lucy", "Wild", "Gold", "Cyan", "Blue");
-            case "fox" -> stringVariants("Type", "red", "snow");
-            case "mooshroom" -> stringVariants("Type", "red", "brown");
-            case "cat" -> catVariants();
-            case "panda" -> pandaVariants();
-            case "villager", "zombie_villager" -> villagerVariants();
+            case "fox" -> mapped(v -> "{Type:\"" + v + "\"}", "red", "snow");
+            case "mooshroom" -> mapped(v -> "{Type:\"" + v + "\"}", "red", "brown");
+            case "cat" -> mapped(v -> "{variant:\"minecraft:" + v + "\"}", "tabby", "black", "red", "siamese",
+                    "british_shorthair", "calico", "persian", "ragdoll", "white", "jellie", "all_black");
+            case "panda" -> mapped(v -> "{MainGene:\"" + v + "\",HiddenGene:\"" + v + "\"}",
+                    "normal", "lazy", "worried", "playful", "brown", "weak", "aggressive");
+            case "villager", "zombie_villager" -> mapped(v -> "{VillagerData:{profession:\"minecraft:" + v + "\",level:1,type:\"minecraft:plains\"}}",
+                    "none", "armorer", "butcher", "cartographer", "cleric", "farmer", "fisherman", "fletcher",
+                    "leatherworker", "librarian", "mason", "nitwit", "shepherd", "toolsmith", "weaponsmith");
             case "slime", "magma_cube" -> intVariants("Size", "Tiny", "Small", "Medium", "Large");
             case "pufferfish" -> intVariants("PuffState", "Deflated", "Half Puffed", "Fully Puffed");
             case "snow_golem" -> List.of(new Variant("With Pumpkin", ""), new Variant("Sheared", "{Pumpkin:0b}"));
@@ -152,22 +147,22 @@ public final class EntityVariants {
 
     private static Entity createProbe(ResourceLocation entityId) {
         Level level = Minecraft.getInstance().level;
-        if (level == null) {
-            return null;
-        }
         EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(entityId);
-        if (type == null) {
-            return null;
-        }
         try {
-            return type.create(level);
+            return level == null || type == null ? null : type.create(level);
         } catch (Throwable ignored) {
             return null;
         }
     }
 
-    private static Variant nametag(String label, String name) {
-        return new Variant(label, "{CustomName:'\"" + name + "\"'}");
+    private static Variant nametag(String name) {
+        return new Variant(name, "{CustomName:'\"" + name + "\"'}");
+    }
+
+    private static List<Variant> with(List<Variant> base, Variant... extra) {
+        List<Variant> list = new ArrayList<>(base);
+        list.addAll(Arrays.asList(extra));
+        return list;
     }
 
     private static List<Variant> intVariants(String key, String... labels) {
@@ -178,75 +173,14 @@ public final class EntityVariants {
         return list;
     }
 
-    private static List<Variant> stringVariants(String key, String... values) {
-        List<Variant> list = new ArrayList<>(values.length);
-        for (String value : values) {
-            list.add(new Variant(capitalize(value), "{" + key + ":\"" + value + "\"}"));
-        }
-        return list;
-    }
-
-    private static List<Variant> sheepVariants() {
-        List<Variant> list = new ArrayList<>(intVariants("Color", DYE_LABELS));
-        list.add(nametag("jeb_", "jeb_"));
-        return list;
-    }
-
-    private static List<Variant> rabbitVariants() {
-        List<Variant> list = new ArrayList<>();
-        String[] labels = {"Brown", "White", "Black", "Black & White", "Gold", "Salt & Pepper"};
-        for (int i = 0; i < labels.length; i++) {
-            list.add(new Variant(labels[i], "{RabbitType:" + i + "}"));
-        }
-        list.add(new Variant("The Killer Bunny", "{RabbitType:99}"));
-        list.add(nametag("Toast", "Toast"));
-        return list;
-    }
-
-    private static List<Variant> catVariants() {
-        String[] types = {"tabby", "black", "red", "siamese", "british_shorthair",
-                "calico", "persian", "ragdoll", "white", "jellie", "all_black"};
-        List<Variant> list = new ArrayList<>(types.length);
-        for (String type : types) {
-            list.add(new Variant(capitalize(type), "{variant:\"minecraft:" + type + "\"}"));
-        }
-        return list;
-    }
-
-    private static List<Variant> pandaVariants() {
-        String[] genes = {"normal", "lazy", "worried", "playful", "brown", "weak", "aggressive"};
-        List<Variant> list = new ArrayList<>(genes.length);
-        for (String gene : genes) {
-            list.add(new Variant(capitalize(gene), "{MainGene:\"" + gene + "\",HiddenGene:\"" + gene + "\"}"));
-        }
-        return list;
-    }
-
-    private static List<Variant> villagerVariants() {
-        String[] professions = {"none", "armorer", "butcher", "cartographer", "cleric", "farmer",
-                "fisherman", "fletcher", "leatherworker", "librarian", "mason", "nitwit",
-                "shepherd", "toolsmith", "weaponsmith"};
-        List<Variant> list = new ArrayList<>(professions.length);
-        for (String profession : professions) {
-            list.add(new Variant(capitalize(profession),
-                    "{VillagerData:{profession:\"minecraft:" + profession + "\",level:1,type:\"minecraft:plains\"}}"));
-        }
-        return list;
+    private static List<Variant> mapped(Function<String, String> nbt, String... values) {
+        return Arrays.stream(values).map(v -> new Variant(capitalize(v), nbt.apply(v))).toList();
     }
 
     private static String capitalize(String value) {
-        String cleaned = value.replace('_', ' ');
-        String[] words = cleaned.split(" ");
-        StringBuilder sb = new StringBuilder();
-        for (String word : words) {
-            if (word.isEmpty()) {
-                continue;
-            }
-            if (sb.length() > 0) {
-                sb.append(' ');
-            }
-            sb.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
-        }
-        return sb.toString();
+        return Arrays.stream(value.split("_"))
+                .filter(word -> !word.isEmpty())
+                .map(word -> Character.toUpperCase(word.charAt(0)) + word.substring(1))
+                .collect(Collectors.joining(" "));
     }
 }

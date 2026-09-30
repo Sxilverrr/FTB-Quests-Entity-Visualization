@@ -1,18 +1,15 @@
 package com.sxilverr.ftbquestsentityvis.mixin;
 
 import com.sxilverr.ftbquestsentityvis.client.EntityComponent;
-import dev.ftb.mods.ftblibrary.config.ConfigGroup;
-import dev.ftb.mods.ftblibrary.config.ui.EditConfigScreen;
+import com.sxilverr.ftbquestsentityvis.client.EntityIconScreen;
 import dev.ftb.mods.ftblibrary.icon.Icon;
 import dev.ftb.mods.ftblibrary.icon.ItemIcon;
 import dev.ftb.mods.ftblibrary.ui.ContextMenuItem;
 import dev.ftb.mods.ftblibrary.ui.Panel;
 import dev.ftb.mods.ftblibrary.util.client.ImageComponent;
 import dev.ftb.mods.ftbquests.client.gui.quests.ViewQuestPanel;
-import dev.ftb.mods.ftbquests.net.EditObjectMessage;
 import dev.ftb.mods.ftbquests.quest.Quest;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.item.Items;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -46,24 +43,13 @@ public abstract class ViewQuestPanelMixin {
             remap = false)
     private List<ContextMenuItem> ftbquestsentityvis$addShowEntity(List<ContextMenuItem> menu) {
         ContextMenuItem item = new ContextMenuItem(
-                Component.translatable("ftbquestsentityvis.show_entity"),
+                Component.translatable(EntityIconScreen.SHOW_TITLE),
                 ftbquestsentityvis$SHOW_ENTITY_ICON,
                 b -> ftbquestsentityvis$openEntityEditor(-1, new EntityComponent()));
 
-        int insertAt = -1;
-        for (int i = 0; i < menu.size(); i++) {
-            Component title = menu.get(i).getTitle();
-            if (title != null && title.getContents() instanceof TranslatableContents tc
-                    && "ftbquests.gui.image".equals(tc.getKey())) {
-                insertAt = i + 1;
-                break;
-            }
-        }
-        if (insertAt < 0) {
-            int lastSeparator = menu.lastIndexOf(ContextMenuItem.SEPARATOR);
-            insertAt = lastSeparator >= 0 ? lastSeparator : menu.size();
-        }
-        menu.add(insertAt, item);
+        int image = EntityIconScreen.menuIndex(menu, "ftbquests.gui.image");
+        int lastSeparator = menu.lastIndexOf(ContextMenuItem.SEPARATOR);
+        menu.add(image >= 0 ? image + 1 : lastSeparator >= 0 ? lastSeparator : menu.size(), item);
         return menu;
     }
 
@@ -78,7 +64,7 @@ public abstract class ViewQuestPanelMixin {
     @Unique
     private void ftbquestsentityvis$openEntityEditor(int line, EntityComponent component) {
         Panel self = (Panel) (Object) this;
-        ConfigGroup group = new ConfigGroup("ftbquestsentityvis", accepted -> {
+        EntityIconScreen.open(EntityIconScreen.SHOW_TITLE, accepted -> {
             self.getGui().openGui();
             if (accepted) {
                 String serialized = component.toString();
@@ -97,27 +83,9 @@ public abstract class ViewQuestPanelMixin {
                     quest.getRawDescription().set(line, serialized);
                 }
                 //?}
-                //? if >=1.21.1 {
-                /*EditObjectMessage.sendToServer(quest);*/
-                //?} else {
-                new EditObjectMessage(quest).sendToServer();
-                //?}
+                EntityIconScreen.send(quest);
                 self.refreshWidgets();
             }
-        }) {
-            @Override
-            public Component getName() {
-                return Component.translatable("ftbquestsentityvis.show_entity");
-            }
-        };
-
-        component.fillConfig(group);
-
-        new EditConfigScreen(group) {
-            @Override
-            public Component getTitle() {
-                return Component.translatable("ftbquestsentityvis.show_entity");
-            }
-        }.openGui();
+        }, component::fillConfig);
     }
 }

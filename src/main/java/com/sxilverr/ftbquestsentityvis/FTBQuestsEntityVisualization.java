@@ -5,7 +5,4 @@ public final class FTBQuestsEntityVisualization {
 
     private FTBQuestsEntityVisualization() {
     }
-
-    public static void init() {
-    }
 }

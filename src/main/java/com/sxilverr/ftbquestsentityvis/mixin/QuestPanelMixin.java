@@ -1,6 +1,6 @@
 package com.sxilverr.ftbquestsentityvis.mixin;
 
-import com.sxilverr.ftbquestsentityvis.client.ShowEntityScreen;
+import com.sxilverr.ftbquestsentityvis.client.EntityIconScreen;
 import dev.ftb.mods.ftblibrary.icon.Icon;
 import dev.ftb.mods.ftblibrary.icon.ItemIcon;
 import dev.ftb.mods.ftblibrary.ui.ContextMenuItem;
@@ -18,6 +18,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Mixin(QuestPanel.class)
 public abstract class QuestPanelMixin {
@@ -39,31 +40,17 @@ public abstract class QuestPanelMixin {
             return menu;
         }
 
-        final double qx = questX;
-        final double qy = questY;
+        double qx = questX;
+        double qy = questY;
         ContextMenuItem item = new ContextMenuItem(
-                Component.translatable("ftbquestsentityvis.show_entity"),
+                Component.translatable(EntityIconScreen.SHOW_TITLE),
                 ftbquestsentityvis$SHOW_ENTITY_ICON,
-                b -> ShowEntityScreen.openCreate(questScreen, chapter, qx, qy));
+                b -> EntityIconScreen.createImage(questScreen, chapter, qx, qy));
 
         Component killName = TaskTypes.KILL.getDisplayName();
-        int insertAt = -1;
-        for (int i = 0; i < menu.size(); i++) {
-            if (killName.equals(menu.get(i).getTitle())) {
-                insertAt = i + 1;
-                break;
-            }
-        }
-        if (insertAt >= 0) {
-            menu.add(insertAt, item);
-        } else {
-            int separator = menu.indexOf(ContextMenuItem.SEPARATOR);
-            if (separator >= 0) {
-                menu.add(separator, item);
-            } else {
-                menu.add(item);
-            }
-        }
+        int kill = IntStream.range(0, menu.size()).filter(i -> killName.equals(menu.get(i).getTitle())).findFirst().orElse(-1);
+        int separator = menu.indexOf(ContextMenuItem.SEPARATOR);
+        menu.add(kill >= 0 ? kill + 1 : separator >= 0 ? separator : menu.size(), item);
         return menu;
     }
 }

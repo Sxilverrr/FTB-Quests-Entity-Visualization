@@ -7,11 +7,24 @@ import com.mojang.math.Axis;
 //? if <1.21.1
 import org.joml.Matrix4f;
 import com.sxilverr.ftbquestsentityvis.Config;
-import com.sxilverr.ftbquestsentityvis.duck.OverrideMode;
+import com.sxilverr.ftbquestsentityvis.EntityVisSettings;
+import com.sxilverr.ftbquestsentityvis.duck.IEntityVis;
+import com.sxilverr.ftbquestsentityvis.duck.SilhouetteMode;
+import dev.ftb.mods.ftblibrary.config.NameMap;
 import dev.ftb.mods.ftblibrary.icon.Icon;
 import dev.ftb.mods.ftblibrary.icon.ItemIcon;
 import dev.ftb.mods.ftblibrary.ui.GuiHelper;
+import dev.ftb.mods.ftbquests.client.ClientQuestFile;
+import dev.ftb.mods.ftbquests.quest.Quest;
+import dev.ftb.mods.ftbquests.quest.QuestObject;
+import dev.ftb.mods.ftbquests.quest.TeamData;
+import dev.ftb.mods.ftbquests.quest.task.Task;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.client.gui.GuiGraphics;
@@ -19,9 +32,11 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.Level;
@@ -29,7 +44,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 import java.util.List;
-import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 
 @Environment(EnvType.CLIENT)
 public class EntityIcon extends Icon {
@@ -39,73 +54,83 @@ public class EntityIcon extends Icon {
     private static final float MIN_CYCLE_SECONDS = 0.1F;
 
     private final ResourceLocation entityId;
-    private final float sizeMultiplier;
-    private final float offsetX;
-    private final float offsetY;
-    private final float rotationOffset;
-    private final OverrideMode spinMode;
-    private final OverrideMode idleMode;
-    private final OverrideMode walkMode;
-    private final BooleanSupplier silhouetteCheck;
-    private final String nbt;
+    private final EntityVisSettings settings;
+    private final QuestObject owner;
     private final List<String> variants;
-    private final float cycleSeconds;
 
     private Entity[] cachedEntities;
     private boolean[] creationFailed;
     private Level cachedLevel;
     private long lastAnimTickMs;
 
-    public EntityIcon(ResourceLocation entityId, float sizeMultiplier, float offsetX, float offsetY,
-                      float rotationOffset, OverrideMode spinMode, OverrideMode idleMode, OverrideMode walkMode) {
-        this(entityId, sizeMultiplier, offsetX, offsetY, rotationOffset, spinMode, idleMode, walkMode, null, "");
-    }
-
-    public EntityIcon(ResourceLocation entityId, float sizeMultiplier, float offsetX, float offsetY,
-                      float rotationOffset, OverrideMode spinMode, OverrideMode idleMode, OverrideMode walkMode,
-                      BooleanSupplier silhouetteCheck) {
-        this(entityId, sizeMultiplier, offsetX, offsetY, rotationOffset, spinMode, idleMode, walkMode, silhouetteCheck, "");
-    }
-
-    public EntityIcon(ResourceLocation entityId, float sizeMultiplier, float offsetX, float offsetY,
-                      float rotationOffset, OverrideMode spinMode, OverrideMode idleMode, OverrideMode walkMode,
-                      BooleanSupplier silhouetteCheck, String nbt) {
-        this(entityId, sizeMultiplier, offsetX, offsetY, rotationOffset, spinMode, idleMode, walkMode, silhouetteCheck, nbt, 0.0F);
-    }
-
-    public EntityIcon(ResourceLocation entityId, float sizeMultiplier, float offsetX, float offsetY,
-                      float rotationOffset, OverrideMode spinMode, OverrideMode idleMode, OverrideMode walkMode,
-                      BooleanSupplier silhouetteCheck, String nbt, float cycleSeconds) {
+    public EntityIcon(ResourceLocation entityId, EntityVisSettings settings, QuestObject owner) {
         this.entityId = entityId;
-        this.sizeMultiplier = sizeMultiplier;
-        this.offsetX = offsetX;
-        this.offsetY = offsetY;
-        this.rotationOffset = rotationOffset;
-        this.spinMode = spinMode;
-        this.idleMode = idleMode;
-        this.walkMode = walkMode;
-        this.silhouetteCheck = silhouetteCheck;
-        this.nbt = nbt == null ? "" : nbt.trim();
-        List<String> split = EntityNbt.split(this.nbt);
+        this.settings = settings.copy();
+        this.owner = owner;
+        List<String> split = EntityNbt.split(settings.nbt);
         this.variants = split.isEmpty() ? List.of("") : split;
-        this.cycleSeconds = cycleSeconds;
     }
 
-    public static long cycleIntervalMs(float cycleSeconds) {
-        float seconds = cycleSeconds > 0.0F ? cycleSeconds : (float) Config.tagCycleSeconds;
-        return Math.max((long) (Math.max(seconds, MIN_CYCLE_SECONDS) * 1000.0F), 1L);
+    public EntityIcon(ResourceLocation entityId, String nbt) {
+        this(entityId, preview(nbt), null);
+    }
+
+    private static EntityVisSettings preview(String nbt) {
+        EntityVisSettings s = new EntityVisSettings();
+        s.nbt = nbt;
+        return s;
+    }
+
+    public static Icon forTask(Task task, IEntityVis host) {
+        EntityVisSettings s = host.ftbquestsentityvis$vis();
+        TagKey<EntityType<?>> tag = host.ftbquestsentityvis$visTag();
+        List<ResourceLocation> members = CyclingEntityIcon.entitiesIn(tag);
+        if (!members.isEmpty() && s.tagCycleMode.resolve(Config.tagCycle)) {
+            return new CyclingEntityIcon(tag, s, task);
+        }
+        ResourceLocation id = tag == null ? host.ftbquestsentityvis$visEntity() : members.isEmpty() ? null : members.get(0);
+        return id == null ? null : new EntityIcon(id, s, task);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static NameMap.Builder withEntityIcons(NameMap.Builder builder, Function original) {
+        return builder.icon((Function<Object, Icon>) v -> v instanceof ResourceLocation id ? new EntityIcon(id, "") : (Icon) original.apply(v));
     }
 
     public static int cycleIndex(float cycleSeconds, int count) {
         if (count <= 1) {
             return 0;
         }
-        return (int) Math.floorMod(System.currentTimeMillis() / cycleIntervalMs(cycleSeconds), (long) count);
+        float seconds = Math.max(cycleSeconds > 0.0F ? cycleSeconds : (float) Config.tagCycleSeconds, MIN_CYCLE_SECONDS);
+        return (int) Math.floorMod(System.currentTimeMillis() / (long) (seconds * 1000.0F), (long) count);
+    }
+
+    public boolean showing(EntityVisSettings s) {
+        return settings.equals(s);
+    }
+
+    private boolean silhouette() {
+        SilhouetteMode mode = settings.silhouetteMode;
+        if (mode == SilhouetteMode.ALWAYS) {
+            return true;
+        }
+        TeamData data = ClientQuestFile.INSTANCE == null ? null : ClientQuestFile.INSTANCE.selfTeamData;
+        if (mode == SilhouetteMode.NONE || owner == null || data == null) {
+            return false;
+        }
+        try {
+            if (mode == SilhouetteMode.UNTIL_COMPLETED) {
+                return !data.isCompleted(owner);
+            }
+            Quest quest = owner instanceof Task task ? task.getQuest() : (Quest) owner;
+            return quest != null && !data.areDependenciesComplete(quest);
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     private Entity getEntity() {
-        Minecraft mc = Minecraft.getInstance();
-        Level level = mc.level;
+        Level level = Minecraft.getInstance().level;
         if (level == null) {
             return null;
         }
@@ -115,20 +140,13 @@ public class EntityIcon extends Icon {
             creationFailed = new boolean[variants.size()];
             lastAnimTickMs = 0L;
         }
-        int index = cycleIndex(cycleSeconds, variants.size());
-        if (cachedEntities[index] != null) {
+        int index = cycleIndex(settings.cycleSeconds, variants.size());
+        if (cachedEntities[index] != null || creationFailed[index]) {
             return cachedEntities[index];
         }
-        if (creationFailed[index]) {
-            return null;
-        }
-        EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(entityId);
-        if (type == null) {
-            creationFailed[index] = true;
-            return null;
-        }
         try {
-            Entity created = type.create(level);
+            EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(entityId);
+            Entity created = type == EntityType.PLAYER ? player(level) : type == null ? null : type.create(level);
             if (created != null) {
                 applyNbt(created, variants.get(index));
                 cachedEntities[index] = created;
@@ -138,6 +156,42 @@ public class EntityIcon extends Icon {
         }
         creationFailed[index] = true;
         return null;
+    }
+
+    private Entity player(Level level) {
+        Minecraft mc = Minecraft.getInstance();
+        if (!(level instanceof ClientLevel clientLevel) || mc.player == null) {
+            return null;
+        }
+        String skin = settings.skin.trim();
+        boolean slim = settings.slimArms;
+        return new RemotePlayer(clientLevel, mc.player.getGameProfile()) {
+            {
+                getEntityData().set(DATA_PLAYER_MODE_CUSTOMISATION, (byte) 0x7F);
+            }
+
+            @Override
+            public boolean isInvisibleTo(Player player) {
+                return true;
+            }
+
+            //? if >=1.21.1 {
+            /*@Override
+            public net.minecraft.client.resources.PlayerSkin getSkin() {
+                return skin.isEmpty() ? super.getSkin() : PlayerSkins.skin(skin, slim);
+            }*/
+            //?} else {
+            @Override
+            public ResourceLocation getSkinTextureLocation() {
+                return skin.isEmpty() ? super.getSkinTextureLocation() : PlayerSkins.texture(skin);
+            }
+
+            @Override
+            public String getModelName() {
+                return skin.isEmpty() ? super.getModelName() : PlayerSkins.slim(skin, slim) ? "slim" : "default";
+            }
+            //?}
+        };
     }
 
     private static void applyNbt(Entity entity, String variant) {
@@ -156,15 +210,16 @@ public class EntityIcon extends Icon {
         }
     }
 
-    private Icon fallbackIcon() {
+    private void drawFallback(GuiGraphics graphics, int x, int y, int w, int h) {
         EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(entityId);
         SpawnEggItem egg = type != null ? SpawnEggItem.byId(type) : null;
-        return ItemIcon.getItemIcon(egg != null ? egg : Items.SPAWNER);
+        ItemIcon.getItemIcon(egg != null ? egg : Items.SPAWNER).draw(graphics, x, y, w, h);
+        GuiHelper.setupDrawing();
     }
 
     private void advanceAnimations(Entity entity) {
-        boolean idle = idleMode.resolve(Config.idleAnimation);
-        boolean walk = walkMode.resolve(Config.walkAnimation);
+        boolean idle = settings.idleMode.resolve(Config.idleAnimation);
+        boolean walk = settings.walkMode.resolve(Config.walkAnimation);
         if (!idle && !walk) {
             return;
         }
@@ -200,31 +255,29 @@ public class EntityIcon extends Icon {
     public void draw(GuiGraphics graphics, int x, int y, int w, int h) {
         Entity entity = getEntity();
         if (entity == null) {
-            fallbackIcon().draw(graphics, x, y, w, h);
+            drawFallback(graphics, x, y, w, h);
             return;
         }
 
         advanceAnimations(entity);
 
-        float effectiveSize = QuestSizeContext.resolveSize(sizeMultiplier);
+        float effectiveSize = QuestSizeWrappedIcon.resolveSize(settings.size);
         float bbHeight = Math.max(entity.getBbHeight(), 0.1F);
         float bbWidth = Math.max(entity.getBbWidth(), 0.1F);
         float scale = Math.min(h / bbHeight, w / bbWidth) * Math.max(effectiveSize, 0.01F);
         if (scale <= 0.0F) {
-            fallbackIcon().draw(graphics, x, y, w, h);
+            drawFallback(graphics, x, y, w, h);
             return;
         }
 
-        double cx = x + w / 2.0 + offsetX * w;
-        double cy = y + h / 2.0 + bbHeight * scale / 2.0 - offsetY * h;
+        double cx = x + w / 2.0 + settings.offsetX * w;
+        double cy = y + h / 2.0 + bbHeight * scale / 2.0 - settings.offsetY * h;
 
-        boolean spinning = spinMode.resolve(Config.mobsSpin);
-        float spinSpeed = (float) (double) Config.spinSpeed;
-        float spin = spinning
-                ? (System.currentTimeMillis() % SPIN_PERIOD_MS) / (float) SPIN_PERIOD_MS * 360.0F * spinSpeed
+        float spin = settings.spinMode.resolve(Config.mobsSpin)
+                ? (System.currentTimeMillis() % SPIN_PERIOD_MS) / (float) SPIN_PERIOD_MS * 360.0F * (float) Config.spinSpeed
                 : 0.0F;
-        float yaw = spin + rotationOffset;
-        float tilt = (float) (double) Config.tiltDegrees;
+        float yaw = spin + settings.rotation;
+        float tilt = (float) Config.tiltDegrees;
 
         PoseStack pose = graphics.pose();
         pose.pushPose();
@@ -262,7 +315,7 @@ public class EntityIcon extends Icon {
         entity.setYRot(0.0F);
         entity.setXRot(0.0F);
 
-        boolean silhouette = silhouetteCheck != null && silhouetteCheck.getAsBoolean();
+        boolean silhouette = silhouette();
         int packedLight = silhouette || Config.fullBright ? LightTexture.FULL_BRIGHT : 15728640;
 
         //? if <1.21.1 {
@@ -304,40 +357,53 @@ public class EntityIcon extends Icon {
             }
             GuiHelper.setupDrawing();
         }
+
+        if (entity instanceof Player) {
+            String skin = settings.skin.trim();
+            PlayerSkins.Status status = PlayerSkins.status(skin);
+            if (status != PlayerSkins.Status.READY) {
+                Component text = Component.translatable("ftbquestsentityvis.skin." + status.name().toLowerCase(), PlayerSkins.failures(skin));
+                boolean waiting = status != PlayerSkins.Status.FAILED;
+                drawCaption(graphics, text, waiting ? ".".repeat(1 + (int) (System.currentTimeMillis() / 400L % 3L)) : "",
+                        waiting ? 0xFFFFFF : 0xFF5555, x, y, w, h);
+            }
+        }
+    }
+
+    private static void drawCaption(GuiGraphics graphics, Component text, String dots, int color, int x, int y, int w, int h) {
+        Font font = Minecraft.getInstance().font;
+        int dotsWidth = dots.isEmpty() ? 0 : font.width("...");
+        float scale = h / (font.lineHeight * 8.0F);
+        List<FormattedCharSequence> lines = font.split(text, Math.max(1, (int) (w / scale) - dotsWidth));
+        PoseStack pose = graphics.pose();
+        pose.pushPose();
+        pose.translate(x + w / 2.0F, y + h - lines.size() * font.lineHeight * scale, 300.0F);
+        pose.scale(scale, scale, 1.0F);
+        for (int i = 0; i < lines.size(); i++) {
+            FormattedCharSequence line = lines.get(i);
+            boolean last = i == lines.size() - 1;
+            int left = -(font.width(line) + (last ? dotsWidth : 0)) / 2;
+            graphics.drawString(font, line, left, i * font.lineHeight, color, true);
+            if (last && !dots.isEmpty()) {
+                graphics.drawString(font, dots, left + font.width(line), i * font.lineHeight, color, true);
+            }
+        }
+        pose.popPose();
+        GuiHelper.setupDrawing();
     }
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof EntityIcon other
-                && other.entityId.equals(entityId)
-                && Float.compare(other.sizeMultiplier, sizeMultiplier) == 0
-                && Float.compare(other.offsetX, offsetX) == 0
-                && Float.compare(other.offsetY, offsetY) == 0
-                && Float.compare(other.rotationOffset, rotationOffset) == 0
-                && Float.compare(other.cycleSeconds, cycleSeconds) == 0
-                && other.spinMode == spinMode
-                && other.idleMode == idleMode
-                && other.walkMode == walkMode
-                && other.nbt.equals(nbt);
-    }
-
-    @Override
-    public String toString() {
-        return "entity:" + entityId + (nbt.isEmpty() ? "" : nbt);
+        return o instanceof EntityIcon other && other.entityId.equals(entityId) && other.settings.equals(settings);
     }
 
     @Override
     public int hashCode() {
-        int h = entityId.hashCode();
-        h = h * 31 + Float.hashCode(sizeMultiplier);
-        h = h * 31 + Float.hashCode(offsetX);
-        h = h * 31 + Float.hashCode(offsetY);
-        h = h * 31 + Float.hashCode(rotationOffset);
-        h = h * 31 + Float.hashCode(cycleSeconds);
-        h = h * 31 + spinMode.ordinal();
-        h = h * 31 + idleMode.ordinal();
-        h = h * 31 + walkMode.ordinal();
-        h = h * 31 + nbt.hashCode();
-        return h;
+        return entityId.hashCode() * 31 + settings.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "entity:" + entityId + settings.nbt.trim();
     }
 }

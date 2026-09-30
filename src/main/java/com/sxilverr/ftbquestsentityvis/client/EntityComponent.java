@@ -1,107 +1,59 @@
 package com.sxilverr.ftbquestsentityvis.client;
 
-import com.sxilverr.ftbquestsentityvis.ModUtil;
+import com.sxilverr.ftbquestsentityvis.EntityVisSettings;
 import com.sxilverr.ftbquestsentityvis.duck.OverrideMode;
+import com.sxilverr.ftbquestsentityvis.duck.SilhouetteMode;
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
-import dev.ftb.mods.ftblibrary.config.NameMap;
 import dev.ftb.mods.ftblibrary.icon.Icon;
 import dev.ftb.mods.ftblibrary.util.client.ImageComponent;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
 import java.util.Map;
 
 @Environment(EnvType.CLIENT)
 public class EntityComponent extends ImageComponent {
-    public static final ResourceLocation DEFAULT_ENTITY = ModUtil.rl("minecraft:pig");
-
-    public ResourceLocation entityId = DEFAULT_ENTITY;
-    public float size = 1.0F;
-    public float offsetX = 0.0F;
-    public float offsetY = 0.0F;
-    public float rotation = 0.0F;
-    public OverrideMode spinMode = OverrideMode.USE_GLOBAL;
-    public OverrideMode idleMode = OverrideMode.USE_GLOBAL;
-    public OverrideMode walkMode = OverrideMode.USE_GLOBAL;
-    public boolean silhouette = false;
-    public String nbt = "";
-    public float cycleSeconds = 0.0F;
+    public final EntityVisSettings vis = new EntityVisSettings();
 
     public EntityComponent() {
+        vis.entityId = EntityVisSettings.DEFAULT_ENTITY;
         setCompWidth(100);
         setCompHeight(100);
         setCompAlign(ImageAlign.CENTER);
-        rebuildIcon();
     }
 
     public static EntityComponent fromProperties(Map<String, String> map) {
         EntityComponent c = new EntityComponent();
-        if (map.containsKey("entity")) {
-            c.entityId = ModUtil.rl(map.get("entity"));
+        EntityVisSettings s = c.vis;
+        ResourceLocation id = ResourceLocation.tryParse(map.get("entity"));
+        if (id != null) {
+            s.entityId = id;
         }
-        c.size = parseFloat(map.get("ent_size"), 1.0F);
-        c.offsetX = parseFloat(map.get("off_x"), 0.0F);
-        c.offsetY = parseFloat(map.get("off_y"), 0.0F);
-        c.rotation = parseFloat(map.get("rot"), 0.0F);
-        c.spinMode = OverrideMode.fromName(map.getOrDefault("spin", "USE_GLOBAL"));
-        c.idleMode = OverrideMode.fromName(map.getOrDefault("idle", "USE_GLOBAL"));
-        c.walkMode = OverrideMode.fromName(map.getOrDefault("walk", "USE_GLOBAL"));
-        c.silhouette = "true".equals(map.get("silhouette"));
-        c.nbt = decodeNbt(map.get("nbt"));
-        c.cycleSeconds = parseFloat(map.get("cycle"), 0.0F);
-        c.setCompWidth(parseInt(map.get("width"), 100));
-        c.setCompHeight(parseInt(map.get("height"), 100));
+        s.size = num(map.get("ent_size"), 1.0F);
+        s.offsetX = num(map.get("off_x"), 0.0F);
+        s.offsetY = num(map.get("off_y"), 0.0F);
+        s.rotation = num(map.get("rot"), 0.0F);
+        s.spinMode = EntityVisSettings.enumOr(OverrideMode.USE_GLOBAL, map.getOrDefault("spin", ""));
+        s.idleMode = EntityVisSettings.enumOr(OverrideMode.USE_GLOBAL, map.getOrDefault("idle", ""));
+        s.walkMode = EntityVisSettings.enumOr(OverrideMode.USE_GLOBAL, map.getOrDefault("walk", ""));
+        s.silhouetteMode = "true".equals(map.get("silhouette")) ? SilhouetteMode.ALWAYS : SilhouetteMode.NONE;
+        s.nbt = decode(map.get("nbt"));
+        s.cycleSeconds = num(map.get("cycle"), 0.0F);
+        s.skin = decode(map.get("skin"));
+        s.slimArms = "true".equals(map.get("slim"));
+        c.setCompWidth((int) num(map.get("width"), 100));
+        c.setCompHeight((int) num(map.get("height"), 100));
         c.setCompAlign(alignByName(map.getOrDefault("align", "center")));
-        c.rebuildIcon();
+        c.setCompImage(new EntityIcon(s.entityId, s, null));
         return c;
     }
 
-    public void rebuildIcon() {
-        setCompImage(new EntityIcon(entityId, size, offsetX, offsetY, rotation,
-                spinMode, idleMode, walkMode, silhouette ? () -> true : null, nbt, cycleSeconds));
-    }
-
     public void fillConfig(ConfigGroup config) {
-        List<ResourceLocation> ids = new ArrayList<>(BuiltInRegistries.ENTITY_TYPE.keySet());
-        config.addEnum("entity", entityId, v -> entityId = v,
-                        NameMap.of(DEFAULT_ENTITY, ids)
-                                .nameKey(v -> "entity." + v.getNamespace() + "." + v.getPath())
-                                .icon(v -> new EntityIcon(v, 1.0F, 0.0F, 0.0F, 0.0F,
-                                        OverrideMode.USE_GLOBAL, OverrideMode.USE_GLOBAL, OverrideMode.USE_GLOBAL))
-                                .create(), DEFAULT_ENTITY)
-                .setNameKey("ftbquestsentityvis.config.entity");
-
-        EntityVariants.addNbtControls(config, entityId, nbt, v -> nbt = v);
-        if (EntityNbt.cycles(nbt)) {
-            config.addDouble("cycle_seconds", cycleSeconds, v -> cycleSeconds = v.floatValue(), 0.0D, 0.0D, 60.0D)
-                    .setNameKey("ftbquestsentityvis.config.cycle_seconds");
-        }
-
-        config.addDouble("size", size, v -> size = v.floatValue(), 1.0D, 0.0D, 10.0D)
-                .setNameKey("ftbquestsentityvis.config.size");
-        config.addDouble("offset_x", offsetX, v -> offsetX = v.floatValue(), 0.0D, -2.0D, 2.0D)
-                .setNameKey("ftbquestsentityvis.config.offset_x");
-        config.addDouble("offset_y", offsetY, v -> offsetY = v.floatValue(), 0.0D, -2.0D, 2.0D)
-                .setNameKey("ftbquestsentityvis.config.offset_y");
-        config.addDouble("rotation", rotation, v -> rotation = v.floatValue(), 0.0D, -180.0D, 180.0D)
-                .setNameKey("ftbquestsentityvis.config.rotation");
-
-        config.addEnum("spin_mode", spinMode, v -> spinMode = v, overrideNameMap("spin_mode"), OverrideMode.USE_GLOBAL)
-                .setNameKey("ftbquestsentityvis.config.spin_mode");
-        config.addEnum("idle_mode", idleMode, v -> idleMode = v, overrideNameMap("idle_mode"), OverrideMode.USE_GLOBAL)
-                .setNameKey("ftbquestsentityvis.config.idle_mode");
-        config.addEnum("walk_mode", walkMode, v -> walkMode = v, overrideNameMap("walk_mode"), OverrideMode.USE_GLOBAL)
-                .setNameKey("ftbquestsentityvis.config.walk_mode");
-
-        config.addBool("silhouette", silhouette, v -> silhouette = v, false)
-                .setNameKey("ftbquestsentityvis.config.silhouette");
-
+        EntityIconScreen.addPicker(config, vis);
+        EntityIconScreen.fill(config, vis, vis.entityId, false, false);
         config.addInt("width", getCompWidth(), v -> setCompWidth(v), 100, 1, 1000)
                 .setNameKey("ftbquestsentityvis.config.width");
         config.addInt("height", getCompHeight(), v -> setCompHeight(v), 100, 1, 1000)
@@ -113,25 +65,31 @@ public class EntityComponent extends ImageComponent {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("{entity:");
-        sb.append(entityId);
-        sb.append(" ent_size:").append(size);
-        sb.append(" off_x:").append(offsetX);
-        sb.append(" off_y:").append(offsetY);
-        sb.append(" rot:").append(rotation);
-        sb.append(" spin:").append(spinMode.name());
-        sb.append(" idle:").append(idleMode.name());
-        sb.append(" walk:").append(walkMode.name());
+        sb.append(vis.entityId);
+        sb.append(" ent_size:").append(vis.size);
+        sb.append(" off_x:").append(vis.offsetX);
+        sb.append(" off_y:").append(vis.offsetY);
+        sb.append(" rot:").append(vis.rotation);
+        sb.append(" spin:").append(vis.spinMode.name());
+        sb.append(" idle:").append(vis.idleMode.name());
+        sb.append(" walk:").append(vis.walkMode.name());
         sb.append(" width:").append(getCompWidth());
         sb.append(" height:").append(getCompHeight());
         sb.append(" align:").append(alignName());
-        if (silhouette) {
+        if (vis.silhouetteMode == SilhouetteMode.ALWAYS) {
             sb.append(" silhouette:true");
         }
-        if (!nbt.isEmpty()) {
-            sb.append(" nbt:").append(encodeNbt(nbt));
+        if (!vis.nbt.isEmpty()) {
+            sb.append(" nbt:").append(encode(vis.nbt));
         }
-        if (cycleSeconds > 0.0F) {
-            sb.append(" cycle:").append(cycleSeconds);
+        if (vis.cycleSeconds > 0.0F) {
+            sb.append(" cycle:").append(vis.cycleSeconds);
+        }
+        if (!vis.skin.isEmpty()) {
+            sb.append(" skin:").append(encode(vis.skin));
+        }
+        if (vis.slimArms) {
+            sb.append(" slim:true");
         }
         sb.append('}');
         return sb.toString();
@@ -209,17 +167,11 @@ public class EntityComponent extends ImageComponent {
         };
     }
 
-    private static NameMap<OverrideMode> overrideNameMap(String key) {
-        return NameMap.of(OverrideMode.USE_GLOBAL, OverrideMode.values())
-                .nameKey(v -> "ftbquestsentityvis.config." + key + "." + v.name().toLowerCase())
-                .create();
-    }
-
-    private static String encodeNbt(String value) {
+    private static String encode(String value) {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(value.getBytes(StandardCharsets.UTF_8));
     }
 
-    private static String decodeNbt(String encoded) {
+    private static String decode(String encoded) {
         if (encoded == null || encoded.isEmpty()) {
             return "";
         }
@@ -230,23 +182,9 @@ public class EntityComponent extends ImageComponent {
         }
     }
 
-    private static float parseFloat(String s, float def) {
-        if (s == null) {
-            return def;
-        }
+    private static float num(String s, float def) {
         try {
-            return Float.parseFloat(s);
-        } catch (NumberFormatException e) {
-            return def;
-        }
-    }
-
-    private static int parseInt(String s, int def) {
-        if (s == null) {
-            return def;
-        }
-        try {
-            return Integer.parseInt(s);
+            return s == null ? def : Float.parseFloat(s);
         } catch (NumberFormatException e) {
             return def;
         }

@@ -10,8 +10,7 @@ import net.neoforged.fml.event.config.ModConfigEvent;
 @Mod(FTBQuestsEntityVisualization.MODID)
 public final class FTBQuestsEntityVisualizationNeoForge {
     public FTBQuestsEntityVisualizationNeoForge(IEventBus modBus, ModContainer container) {
-        FTBQuestsEntityVisualization.init();
-        container.registerConfig(ModConfig.Type.CLIENT, NeoForgeClientConfig.SPEC, "ftb-quests-entity-vis/client.toml");
+        container.registerConfig(ModConfig.Type.CLIENT, NeoForgeClientConfig.SPEC, FTBQuestsEntityVisualization.MODID + "/client.toml");
         modBus.addListener(this::onConfig);
     }
 

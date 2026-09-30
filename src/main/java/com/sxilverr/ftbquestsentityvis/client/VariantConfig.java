@@ -1,11 +1,9 @@
 package com.sxilverr.ftbquestsentityvis.client;
 
 import com.sxilverr.ftbquestsentityvis.client.EntityVariants.Variant;
-import com.sxilverr.ftbquestsentityvis.duck.OverrideMode;
 import dev.ftb.mods.ftblibrary.config.ConfigCallback;
 import dev.ftb.mods.ftblibrary.config.EnumConfig;
 import dev.ftb.mods.ftblibrary.config.NameMap;
-import dev.ftb.mods.ftblibrary.icon.Icon;
 import dev.ftb.mods.ftblibrary.ui.Panel;
 import dev.ftb.mods.ftblibrary.ui.SimpleTextButton;
 import dev.ftb.mods.ftblibrary.ui.Widget;
@@ -43,9 +41,7 @@ public class VariantConfig extends EnumConfig<Variant> {
             @Override
             public void addButtons(Panel panel) {
                 for (Variant variant : options) {
-                    Icon icon = new EntityIcon(entityId, 1.0F, 0.0F, 0.0F, 0.0F,
-                            OverrideMode.USE_GLOBAL, OverrideMode.USE_GLOBAL, OverrideMode.USE_GLOBAL, null, variant.nbt());
-                    panel.add(new SimpleTextButton(panel, Component.literal(variant.label()), icon) {
+                    panel.add(new SimpleTextButton(panel, Component.literal(variant.label()), new EntityIcon(entityId, variant.nbt())) {
                         @Override
                         public void onClicked(MouseButton button) {
                             playClickSound();

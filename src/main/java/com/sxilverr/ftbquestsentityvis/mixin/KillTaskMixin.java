@@ -1,9 +1,8 @@
 package com.sxilverr.ftbquestsentityvis.mixin;
 
+import com.sxilverr.ftbquestsentityvis.EntityVisSettings;
+import com.sxilverr.ftbquestsentityvis.duck.IEntityVis;
 import com.sxilverr.ftbquestsentityvis.duck.IKillTaskTagOption;
-import com.sxilverr.ftbquestsentityvis.duck.IKillTaskVisOptions;
-import com.sxilverr.ftbquestsentityvis.duck.OverrideMode;
-import com.sxilverr.ftbquestsentityvis.duck.SilhouetteMode;
 import dev.ftb.mods.ftbquests.quest.TeamData;
 import dev.ftb.mods.ftbquests.quest.task.KillTask;
 import net.minecraft.core.registries.Registries;
@@ -21,109 +20,65 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(KillTask.class)
-public abstract class KillTaskMixin implements IKillTaskVisOptions/*? if <1.21.1 {*/, IKillTaskTagOption/*?}*/ {
-    @Unique private static final String ftbquestsentityvis$KEY_SIZE = "entity_vis_size";
-    @Unique private static final String ftbquestsentityvis$KEY_OFFSET_X = "entity_vis_offset_x";
-    @Unique private static final String ftbquestsentityvis$KEY_OFFSET_Y = "entity_vis_offset_y";
-    @Unique private static final String ftbquestsentityvis$KEY_ROTATION = "entity_vis_rotation";
-    @Unique private static final String ftbquestsentityvis$KEY_SPIN_MODE = "entity_vis_spin_mode";
-    @Unique private static final String ftbquestsentityvis$KEY_IDLE_MODE = "entity_vis_idle_mode";
-    @Unique private static final String ftbquestsentityvis$KEY_WALK_MODE = "entity_vis_walk_mode";
-    @Unique private static final String ftbquestsentityvis$KEY_SILHOUETTE_MODE = "entity_vis_silhouette_mode";
-    //? if <1.21.1 {
-    @Unique private static final String ftbquestsentityvis$KEY_USE_TAG = "entity_use_tag";
-    //?}
-    @Unique private static final String ftbquestsentityvis$KEY_USE_AS_QUEST_ICON = "entity_vis_use_as_quest_icon";
-    @Unique private static final String ftbquestsentityvis$KEY_NBT = "entity_vis_nbt";
-    @Unique private static final String ftbquestsentityvis$KEY_TAG_CYCLE_MODE = "entity_vis_tag_cycle_mode";
-    @Unique private static final String ftbquestsentityvis$KEY_TAG_CYCLE_SECONDS = "entity_vis_tag_cycle_seconds";
-
-    //? if <1.21.1 {
-    @Shadow(remap = false)
-    private ResourceLocation entity;
-    //?}
+public abstract class KillTaskMixin implements IEntityVis/*? if <1.21.1 {*/, IKillTaskTagOption/*?}*/ {
+    @Unique private final EntityVisSettings ftbquestsentityvis$vis = new EntityVisSettings();
 
     //? if >=1.21.1 {
-    /*@Shadow(remap = false)
-    private ResourceLocation entityTypeId;
-
-    @Shadow(remap = false)
-    private TagKey<EntityType<?>> entityTypeTag;*/
-    //?}
-
-    @Unique private float ftbquestsentityvis$visSize = 1.0F;
-    @Unique private float ftbquestsentityvis$visOffsetX = 0.0F;
-    @Unique private float ftbquestsentityvis$visOffsetY = 0.0F;
-    @Unique private float ftbquestsentityvis$visRotation = 0.0F;
-    @Unique private OverrideMode ftbquestsentityvis$spinMode = OverrideMode.USE_GLOBAL;
-    @Unique private OverrideMode ftbquestsentityvis$idleMode = OverrideMode.USE_GLOBAL;
-    @Unique private OverrideMode ftbquestsentityvis$walkMode = OverrideMode.USE_GLOBAL;
-    @Unique private SilhouetteMode ftbquestsentityvis$silhouetteMode = SilhouetteMode.NONE;
-    //? if <1.21.1 {
-    @Unique private boolean ftbquestsentityvis$useTag = false;
-    //?}
-    @Unique private boolean ftbquestsentityvis$useAsQuestIcon = false;
-    @Unique private String ftbquestsentityvis$visNbt = "";
-    @Unique private OverrideMode ftbquestsentityvis$tagCycleMode = OverrideMode.USE_GLOBAL;
-    @Unique private float ftbquestsentityvis$tagCycleSeconds = 0.0F;
-
-    @Override public float ftbquestsentityvis$getVisSize() { return ftbquestsentityvis$visSize; }
-    @Override public void ftbquestsentityvis$setVisSize(float size) { this.ftbquestsentityvis$visSize = size; }
-
-    @Override public float ftbquestsentityvis$getVisOffsetX() { return ftbquestsentityvis$visOffsetX; }
-    @Override public void ftbquestsentityvis$setVisOffsetX(float offset) { this.ftbquestsentityvis$visOffsetX = offset; }
-
-    @Override public float ftbquestsentityvis$getVisOffsetY() { return ftbquestsentityvis$visOffsetY; }
-    @Override public void ftbquestsentityvis$setVisOffsetY(float offset) { this.ftbquestsentityvis$visOffsetY = offset; }
-
-    @Override public float ftbquestsentityvis$getVisRotation() { return ftbquestsentityvis$visRotation; }
-    @Override public void ftbquestsentityvis$setVisRotation(float rotation) { this.ftbquestsentityvis$visRotation = rotation; }
-
-    @Override public OverrideMode ftbquestsentityvis$getSpinMode() { return ftbquestsentityvis$spinMode; }
-    @Override public void ftbquestsentityvis$setSpinMode(OverrideMode mode) { this.ftbquestsentityvis$spinMode = mode; }
-
-    @Override public OverrideMode ftbquestsentityvis$getIdleMode() { return ftbquestsentityvis$idleMode; }
-    @Override public void ftbquestsentityvis$setIdleMode(OverrideMode mode) { this.ftbquestsentityvis$idleMode = mode; }
-
-    @Override public OverrideMode ftbquestsentityvis$getWalkMode() { return ftbquestsentityvis$walkMode; }
-    @Override public void ftbquestsentityvis$setWalkMode(OverrideMode mode) { this.ftbquestsentityvis$walkMode = mode; }
-
-    @Override public SilhouetteMode ftbquestsentityvis$getSilhouetteMode() { return ftbquestsentityvis$silhouetteMode; }
-    @Override public void ftbquestsentityvis$setSilhouetteMode(SilhouetteMode mode) { this.ftbquestsentityvis$silhouetteMode = mode; }
-
-    //? if <1.21.1 {
-    @Override public boolean ftbquestsentityvis$getUseTag() { return ftbquestsentityvis$useTag; }
-    @Override public void ftbquestsentityvis$setUseTag(boolean useTag) { this.ftbquestsentityvis$useTag = useTag; }
-    //?}
-
-    @Override public boolean ftbquestsentityvis$getUseAsQuestIcon() { return ftbquestsentityvis$useAsQuestIcon; }
-    @Override public void ftbquestsentityvis$setUseAsQuestIcon(boolean useAsQuestIcon) { this.ftbquestsentityvis$useAsQuestIcon = useAsQuestIcon; }
-
-    @Override public String ftbquestsentityvis$getVisNbt() { return ftbquestsentityvis$visNbt; }
-    @Override public void ftbquestsentityvis$setVisNbt(String nbt) { this.ftbquestsentityvis$visNbt = nbt == null ? "" : nbt; }
-
-    @Override public OverrideMode ftbquestsentityvis$getTagCycleMode() { return ftbquestsentityvis$tagCycleMode; }
-    @Override public void ftbquestsentityvis$setTagCycleMode(OverrideMode mode) { this.ftbquestsentityvis$tagCycleMode = mode; }
-
-    @Override public float ftbquestsentityvis$getTagCycleSeconds() { return ftbquestsentityvis$tagCycleSeconds; }
-    @Override public void ftbquestsentityvis$setTagCycleSeconds(float seconds) { this.ftbquestsentityvis$tagCycleSeconds = seconds; }
+    /*@Shadow(remap = false) private ResourceLocation entityTypeId;
+    @Shadow(remap = false) private TagKey<EntityType<?>> entityTypeTag;
 
     @Override
-    public boolean ftbquestsentityvis$isTagTarget() {
-        //? if >=1.21.1 {
-        /*return entityTypeTag != null;*/
-        //?} else {
-        return ftbquestsentityvis$useTag && entity != null;
-        //?}
+    public ResourceLocation ftbquestsentityvis$visEntity() {
+        return entityTypeId;
     }
 
     @Override
-    public ResourceLocation ftbquestsentityvis$getVisEntityId() {
-        //? if >=1.21.1 {
-        /*return entityTypeId;*/
-        //?} else {
-        return entity;
-        //?}
+    public TagKey<EntityType<?>> ftbquestsentityvis$visTag() {
+        return entityTypeTag;
+    }*/
+    //?} else {
+    @Unique private static final String ftbquestsentityvis$KEY_USE_TAG = "entity_use_tag";
+
+    @Shadow(remap = false) private ResourceLocation entity;
+    @Unique private boolean ftbquestsentityvis$useTag;
+
+    @Override
+    public ResourceLocation ftbquestsentityvis$visEntity() {
+        return ftbquestsentityvis$useTag ? null : entity;
+    }
+
+    @Override
+    public TagKey<EntityType<?>> ftbquestsentityvis$visTag() {
+        return ftbquestsentityvis$useTag && entity != null ? TagKey.create(Registries.ENTITY_TYPE, entity) : null;
+    }
+
+    @Override
+    public boolean ftbquestsentityvis$getUseTag() {
+        return ftbquestsentityvis$useTag;
+    }
+
+    @Override
+    public void ftbquestsentityvis$setUseTag(boolean useTag) {
+        ftbquestsentityvis$useTag = useTag;
+    }
+
+    @Inject(method = "kill", at = @At("HEAD"), cancellable = true, remap = false)
+    private void ftbquestsentityvis$tagAwareKill(TeamData data, LivingEntity victim, CallbackInfo ci) {
+        if (!ftbquestsentityvis$useTag) {
+            return;
+        }
+        KillTask self = (KillTask) (Object) this;
+        TagKey<EntityType<?>> tag = ftbquestsentityvis$visTag();
+        if (tag != null && !data.isCompleted(self) && victim.getType().is(tag)) {
+            data.addProgress(self, 1L);
+        }
+        ci.cancel();
+    }
+    //?}
+
+    @Override
+    public EntityVisSettings ftbquestsentityvis$vis() {
+        return ftbquestsentityvis$vis;
     }
 
     @Inject(method = "writeData", at = @At("TAIL"), remap = false)
@@ -131,24 +86,9 @@ public abstract class KillTaskMixin implements IKillTaskVisOptions/*? if <1.21.1
     /*private void ftbquestsentityvis$writeData(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries, CallbackInfo ci) {*/
     //?} else {
     private void ftbquestsentityvis$writeData(CompoundTag nbt, CallbackInfo ci) {
-    //?}
-        nbt.putFloat(ftbquestsentityvis$KEY_SIZE, ftbquestsentityvis$visSize);
-        nbt.putFloat(ftbquestsentityvis$KEY_OFFSET_X, ftbquestsentityvis$visOffsetX);
-        nbt.putFloat(ftbquestsentityvis$KEY_OFFSET_Y, ftbquestsentityvis$visOffsetY);
-        nbt.putFloat(ftbquestsentityvis$KEY_ROTATION, ftbquestsentityvis$visRotation);
-        nbt.putString(ftbquestsentityvis$KEY_SPIN_MODE, ftbquestsentityvis$spinMode.name());
-        nbt.putString(ftbquestsentityvis$KEY_IDLE_MODE, ftbquestsentityvis$idleMode.name());
-        nbt.putString(ftbquestsentityvis$KEY_WALK_MODE, ftbquestsentityvis$walkMode.name());
-        nbt.putString(ftbquestsentityvis$KEY_SILHOUETTE_MODE, ftbquestsentityvis$silhouetteMode.name());
-        //? if <1.21.1 {
         nbt.putBoolean(ftbquestsentityvis$KEY_USE_TAG, ftbquestsentityvis$useTag);
-        //?}
-        nbt.putBoolean(ftbquestsentityvis$KEY_USE_AS_QUEST_ICON, ftbquestsentityvis$useAsQuestIcon);
-        if (!ftbquestsentityvis$visNbt.isEmpty()) {
-            nbt.putString(ftbquestsentityvis$KEY_NBT, ftbquestsentityvis$visNbt);
-        }
-        nbt.putString(ftbquestsentityvis$KEY_TAG_CYCLE_MODE, ftbquestsentityvis$tagCycleMode.name());
-        nbt.putFloat(ftbquestsentityvis$KEY_TAG_CYCLE_SECONDS, ftbquestsentityvis$tagCycleSeconds);
+    //?}
+        ftbquestsentityvis$vis.write(nbt, EntityVisSettings.PREFIX);
     }
 
     @Inject(method = "readData", at = @At("TAIL"), remap = false)
@@ -156,22 +96,9 @@ public abstract class KillTaskMixin implements IKillTaskVisOptions/*? if <1.21.1
     /*private void ftbquestsentityvis$readData(CompoundTag nbt, net.minecraft.core.HolderLookup.Provider registries, CallbackInfo ci) {*/
     //?} else {
     private void ftbquestsentityvis$readData(CompoundTag nbt, CallbackInfo ci) {
+        ftbquestsentityvis$useTag = nbt.getBoolean(ftbquestsentityvis$KEY_USE_TAG);
     //?}
-        ftbquestsentityvis$visSize = nbt.contains(ftbquestsentityvis$KEY_SIZE) ? nbt.getFloat(ftbquestsentityvis$KEY_SIZE) : 1.0F;
-        ftbquestsentityvis$visOffsetX = nbt.contains(ftbquestsentityvis$KEY_OFFSET_X) ? nbt.getFloat(ftbquestsentityvis$KEY_OFFSET_X) : 0.0F;
-        ftbquestsentityvis$visOffsetY = nbt.contains(ftbquestsentityvis$KEY_OFFSET_Y) ? nbt.getFloat(ftbquestsentityvis$KEY_OFFSET_Y) : 0.0F;
-        ftbquestsentityvis$visRotation = nbt.contains(ftbquestsentityvis$KEY_ROTATION) ? nbt.getFloat(ftbquestsentityvis$KEY_ROTATION) : 0.0F;
-        ftbquestsentityvis$spinMode = nbt.contains(ftbquestsentityvis$KEY_SPIN_MODE) ? OverrideMode.fromName(nbt.getString(ftbquestsentityvis$KEY_SPIN_MODE)) : OverrideMode.USE_GLOBAL;
-        ftbquestsentityvis$idleMode = nbt.contains(ftbquestsentityvis$KEY_IDLE_MODE) ? OverrideMode.fromName(nbt.getString(ftbquestsentityvis$KEY_IDLE_MODE)) : OverrideMode.USE_GLOBAL;
-        ftbquestsentityvis$walkMode = nbt.contains(ftbquestsentityvis$KEY_WALK_MODE) ? OverrideMode.fromName(nbt.getString(ftbquestsentityvis$KEY_WALK_MODE)) : OverrideMode.USE_GLOBAL;
-        ftbquestsentityvis$silhouetteMode = nbt.contains(ftbquestsentityvis$KEY_SILHOUETTE_MODE) ? SilhouetteMode.fromName(nbt.getString(ftbquestsentityvis$KEY_SILHOUETTE_MODE)) : SilhouetteMode.NONE;
-        //? if <1.21.1 {
-        ftbquestsentityvis$useTag = nbt.contains(ftbquestsentityvis$KEY_USE_TAG) && nbt.getBoolean(ftbquestsentityvis$KEY_USE_TAG);
-        //?}
-        ftbquestsentityvis$useAsQuestIcon = nbt.contains(ftbquestsentityvis$KEY_USE_AS_QUEST_ICON) && nbt.getBoolean(ftbquestsentityvis$KEY_USE_AS_QUEST_ICON);
-        ftbquestsentityvis$visNbt = nbt.contains(ftbquestsentityvis$KEY_NBT) ? nbt.getString(ftbquestsentityvis$KEY_NBT) : "";
-        ftbquestsentityvis$tagCycleMode = nbt.contains(ftbquestsentityvis$KEY_TAG_CYCLE_MODE) ? OverrideMode.fromName(nbt.getString(ftbquestsentityvis$KEY_TAG_CYCLE_MODE)) : OverrideMode.USE_GLOBAL;
-        ftbquestsentityvis$tagCycleSeconds = nbt.contains(ftbquestsentityvis$KEY_TAG_CYCLE_SECONDS) ? nbt.getFloat(ftbquestsentityvis$KEY_TAG_CYCLE_SECONDS) : 0.0F;
+        ftbquestsentityvis$vis.read(nbt, EntityVisSettings.PREFIX);
     }
 
     @Inject(method = "writeNetData", at = @At("TAIL"), remap = false)
@@ -179,22 +106,9 @@ public abstract class KillTaskMixin implements IKillTaskVisOptions/*? if <1.21.1
     /*private void ftbquestsentityvis$writeNetData(net.minecraft.network.RegistryFriendlyByteBuf buf, CallbackInfo ci) {*/
     //?} else {
     private void ftbquestsentityvis$writeNetData(FriendlyByteBuf buf, CallbackInfo ci) {
-    //?}
-        buf.writeFloat(ftbquestsentityvis$visSize);
-        buf.writeFloat(ftbquestsentityvis$visOffsetX);
-        buf.writeFloat(ftbquestsentityvis$visOffsetY);
-        buf.writeFloat(ftbquestsentityvis$visRotation);
-        buf.writeUtf(ftbquestsentityvis$spinMode.name());
-        buf.writeUtf(ftbquestsentityvis$idleMode.name());
-        buf.writeUtf(ftbquestsentityvis$walkMode.name());
-        buf.writeUtf(ftbquestsentityvis$silhouetteMode.name());
-        //? if <1.21.1 {
         buf.writeBoolean(ftbquestsentityvis$useTag);
-        //?}
-        buf.writeBoolean(ftbquestsentityvis$useAsQuestIcon);
-        buf.writeUtf(ftbquestsentityvis$visNbt, Short.MAX_VALUE);
-        buf.writeUtf(ftbquestsentityvis$tagCycleMode.name());
-        buf.writeFloat(ftbquestsentityvis$tagCycleSeconds);
+    //?}
+        ftbquestsentityvis$vis.write(buf);
     }
 
     @Inject(method = "readNetData", at = @At("TAIL"), remap = false)
@@ -202,40 +116,8 @@ public abstract class KillTaskMixin implements IKillTaskVisOptions/*? if <1.21.1
     /*private void ftbquestsentityvis$readNetData(net.minecraft.network.RegistryFriendlyByteBuf buf, CallbackInfo ci) {*/
     //?} else {
     private void ftbquestsentityvis$readNetData(FriendlyByteBuf buf, CallbackInfo ci) {
-    //?}
-        ftbquestsentityvis$visSize = buf.readFloat();
-        ftbquestsentityvis$visOffsetX = buf.readFloat();
-        ftbquestsentityvis$visOffsetY = buf.readFloat();
-        ftbquestsentityvis$visRotation = buf.readFloat();
-        ftbquestsentityvis$spinMode = OverrideMode.fromName(buf.readUtf());
-        ftbquestsentityvis$idleMode = OverrideMode.fromName(buf.readUtf());
-        ftbquestsentityvis$walkMode = OverrideMode.fromName(buf.readUtf());
-        ftbquestsentityvis$silhouetteMode = SilhouetteMode.fromName(buf.readUtf());
-        //? if <1.21.1 {
         ftbquestsentityvis$useTag = buf.readBoolean();
-        //?}
-        ftbquestsentityvis$useAsQuestIcon = buf.readBoolean();
-        ftbquestsentityvis$visNbt = buf.readUtf(Short.MAX_VALUE);
-        ftbquestsentityvis$tagCycleMode = OverrideMode.fromName(buf.readUtf());
-        ftbquestsentityvis$tagCycleSeconds = buf.readFloat();
-    }
-
-    //? if <1.21.1 {
-    @Inject(method = "kill", at = @At("HEAD"), cancellable = true, remap = false)
-    private void ftbquestsentityvis$tagAwareKill(TeamData data, LivingEntity victim, CallbackInfo ci) {
-        if (!ftbquestsentityvis$useTag) {
-            return;
-        }
-        KillTask self = (KillTask) (Object) this;
-        if (entity == null || data.isCompleted(self)) {
-            ci.cancel();
-            return;
-        }
-        TagKey<net.minecraft.world.entity.EntityType<?>> tag = TagKey.create(Registries.ENTITY_TYPE, entity);
-        if (victim.getType().is(tag)) {
-            data.addProgress(self, 1L);
-        }
-        ci.cancel();
-    }
     //?}
+        ftbquestsentityvis$vis.read(buf);
+    }
 }

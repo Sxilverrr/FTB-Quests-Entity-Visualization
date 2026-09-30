@@ -10,6 +10,7 @@ import net.fabricmc.api.Environment;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Environment(EnvType.CLIENT)
 public final class EntityNbt {
@@ -41,32 +42,16 @@ public final class EntityNbt {
     }
 
     public static String join(List<String> variants) {
-        List<String> cleaned = new ArrayList<>(variants.size());
-        for (String variant : variants) {
-            cleaned.add(variant == null ? "" : variant.trim());
-        }
-        if (cleaned.isEmpty()) {
-            return "";
-        }
-        if (cleaned.size() == 1) {
-            return cleaned.get(0);
-        }
-        StringBuilder sb = new StringBuilder("[");
-        for (int i = 0; i < cleaned.size(); i++) {
-            if (i > 0) {
-                sb.append(',');
-            }
-            sb.append(cleaned.get(i).isEmpty() ? "{}" : cleaned.get(i));
-        }
-        return sb.append(']').toString();
-    }
-
-    public static int count(String nbt) {
-        return split(nbt).size();
+        List<String> cleaned = variants.stream().map(v -> v == null ? "" : v.trim()).toList();
+        return switch (cleaned.size()) {
+            case 0 -> "";
+            case 1 -> cleaned.get(0);
+            default -> cleaned.stream().map(v -> v.isEmpty() ? "{}" : v).collect(Collectors.joining(",", "[", "]"));
+        };
     }
 
     public static boolean cycles(String nbt) {
-        return count(nbt) > 1;
+        return split(nbt).size() > 1;
     }
 
     public static CompoundTag parseCompound(String nbt) {

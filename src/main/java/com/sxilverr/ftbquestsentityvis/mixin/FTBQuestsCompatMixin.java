@@ -1,6 +1,6 @@
 package com.sxilverr.ftbquestsentityvis.mixin;
 
-import com.sxilverr.ftbquestsentityvis.client.EntityIconLookup;
+import com.sxilverr.ftbquestsentityvis.client.QuestSizeWrappedIcon;
 import com.sxilverr.ftbquestsentityvis.client.ToastEntityIcons;
 import dev.ftb.mods.ftblibrary.icon.Icon;
 import dev.ftb.mods.ftbquests.client.gui.ToastQuestObject;
@@ -21,7 +21,7 @@ public class FTBQuestsCompatMixin {
         }
         try {
             Icon icon = questToast.getIcon();
-            if (EntityIconLookup.contains(icon)) {
+            if (QuestSizeWrappedIcon.containsEntity(icon)) {
                 ToastEntityIcons.put(display, icon);
             }
         } catch (Throwable ignored) {
