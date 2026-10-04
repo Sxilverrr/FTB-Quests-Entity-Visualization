@@ -21,7 +21,7 @@ Config:
 - Entity tag cycling toggle and cycle speed (the speed also applies to NBT variant cycling)
 
 Dependencies:
-FORGE: [FTB Quests](https://www.curseforge.com/minecraft/mc-mods/ftb-quests-forge) [FTB Library](https://www.curseforge.com/minecraft/mc-mods/ftb-library-forge).
+FORGE: [FTB Quests](https://www.curseforge.com/minecraft/mc-mods/ftb-quests-forge) [FTB Library](https://www.curseforge.com/minecraft/mc-mods/ftb-library-forge)
 FABRIC: [FTB Quests](https://www.curseforge.com/minecraft/mc-mods/ftb-quests-fabric) [FTB Library](https://www.curseforge.com/minecraft/mc-mods/ftb-library-fabric)
 
 Credit:
