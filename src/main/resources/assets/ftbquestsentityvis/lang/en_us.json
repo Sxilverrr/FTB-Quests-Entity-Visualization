@@ -13,6 +13,8 @@
   "ftbquestsentityvis.config.variant": "Variant",
   "ftbquestsentityvis.config.variants": "Cycle Variants",
   "ftbquestsentityvis.config.variants.tooltip": "Add two or more variants and the entity cycles through them.",
+  "ftbquestsentityvis.config.name_tag": "Name Tag",
+  "ftbquestsentityvis.config.name_tag.tooltip": "Text shown above the entity like a name tag. & color codes work. The entity also takes the name, so Dinnerbone and jeb_ work like in vanilla. Leave empty for no name tag.",
   "ftbquestsentityvis.config.player_skin": "Player Skin",
   "ftbquestsentityvis.config.player_skin.tooltip": "A username, a player UUID, or the name of a PNG in config/ftbquestsentityvis/skins (64x64 skins only). Use the UUID for players who might change their name, since old names stop working. Leave empty to show whoever opens the quest book.",
   "ftbquestsentityvis.skin.loading": "Loading",

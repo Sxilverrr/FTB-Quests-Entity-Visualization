@@ -139,6 +139,7 @@ public final class EntityIconScreen {
 
     public static void fill(ConfigGroup config, EntityVisSettings s, ResourceLocation variantsFor, boolean progress, boolean tagTarget) {
         EntityVariants.addNbtControls(config, variantsFor, s.nbt, v -> s.nbt = v);
+        config.addString("name_tag", s.nameTag, v -> s.nameTag = v == null ? "" : v, "").setNameKey(KEY + "name_tag");
         if (EntityType.getKey(EntityType.PLAYER).equals(variantsFor)) {
             config.addString("player_skin", s.skin, v -> s.skin = v == null ? "" : v.trim(), "").setNameKey(KEY + "player_skin");
             config.addBool("slim_arms", s.slimArms, v -> s.slimArms = v, false).setNameKey(KEY + "slim_arms");

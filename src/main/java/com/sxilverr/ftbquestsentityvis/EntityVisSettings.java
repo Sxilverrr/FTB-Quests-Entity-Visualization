@@ -29,6 +29,7 @@ public final class EntityVisSettings {
     public float cycleSeconds;
     public String skin = "";
     public boolean slimArms;
+    public String nameTag = "";
 
     public EntityVisSettings copy() {
         EntityVisSettings c = new EntityVisSettings();
@@ -53,6 +54,7 @@ public final class EntityVisSettings {
         cycleSeconds = o.cycleSeconds;
         skin = o.skin;
         slimArms = o.slimArms;
+        nameTag = o.nameTag;
     }
 
     public CompoundTag write(CompoundTag tag, String p) {
@@ -78,6 +80,9 @@ public final class EntityVisSettings {
             tag.putString(p + "skin", skin);
         }
         tag.putBoolean(p + "slim_arms", slimArms);
+        if (!nameTag.isEmpty()) {
+            tag.putString(p + "name_tag", nameTag);
+        }
         return tag;
     }
 
@@ -100,6 +105,7 @@ public final class EntityVisSettings {
         cycleSeconds = tag.getFloat(tag.contains(p + "cycle_seconds") ? p + "cycle_seconds" : p + "tag_cycle_seconds");
         skin = tag.getString(p + "skin");
         slimArms = tag.getBoolean(p + "slim_arms");
+        nameTag = tag.getString(p + "name_tag");
     }
 
     public void write(FriendlyByteBuf buf) {
@@ -119,6 +125,7 @@ public final class EntityVisSettings {
         buf.writeFloat(cycleSeconds);
         buf.writeUtf(skin);
         buf.writeBoolean(slimArms);
+        buf.writeUtf(nameTag);
     }
 
     public void read(FriendlyByteBuf buf) {
@@ -139,6 +146,7 @@ public final class EntityVisSettings {
         cycleSeconds = buf.readFloat();
         skin = buf.readUtf();
         slimArms = buf.readBoolean();
+        nameTag = buf.readUtf();
     }
 
     public static <E extends Enum<E>> E enumOr(E fallback, String name) {
@@ -157,12 +165,12 @@ public final class EntityVisSettings {
                 && spinMode == s.spinMode && idleMode == s.idleMode && walkMode == s.walkMode
                 && silhouetteMode == s.silhouetteMode && useAsQuestIcon == s.useAsQuestIcon
                 && nbt.equals(s.nbt) && tagCycleMode == s.tagCycleMode && cycleSeconds == s.cycleSeconds
-                && skin.equals(s.skin) && slimArms == s.slimArms;
+                && skin.equals(s.skin) && slimArms == s.slimArms && nameTag.equals(s.nameTag);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(enabled, entityId, size, offsetX, offsetY, rotation, spinMode, idleMode, walkMode,
-                silhouetteMode, useAsQuestIcon, nbt, tagCycleMode, cycleSeconds, skin, slimArms);
+                silhouetteMode, useAsQuestIcon, nbt, tagCycleMode, cycleSeconds, skin, slimArms, nameTag);
     }
 }

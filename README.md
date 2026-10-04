@@ -10,6 +10,8 @@ Kill and observation tasks that target an entity type tag cycle through every en
 
 Any entity display can hold several NBT variants and cycle through them.
 
+Any entity display can have a name tag above it, which works well for putting names over player displays.
+
 Config:
 - Toggle spin, idle, and walk animation defaults.
 - Spin speed multiplier

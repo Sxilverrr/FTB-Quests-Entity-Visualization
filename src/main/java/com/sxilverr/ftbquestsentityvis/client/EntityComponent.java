@@ -44,6 +44,7 @@ public class EntityComponent extends ImageComponent {
         s.cycleSeconds = num(map.get("cycle"), 0.0F);
         s.skin = decode(map.get("skin"));
         s.slimArms = "true".equals(map.get("slim"));
+        s.nameTag = decode(map.get("name"));
         c.setCompWidth((int) num(map.get("width"), 100));
         c.setCompHeight((int) num(map.get("height"), 100));
         c.setCompAlign(alignByName(map.getOrDefault("align", "center")));
@@ -90,6 +91,9 @@ public class EntityComponent extends ImageComponent {
         }
         if (vis.slimArms) {
             sb.append(" slim:true");
+        }
+        if (!vis.nameTag.isEmpty()) {
+            sb.append(" name:").append(encode(vis.nameTag));
         }
         sb.append('}');
         return sb.toString();

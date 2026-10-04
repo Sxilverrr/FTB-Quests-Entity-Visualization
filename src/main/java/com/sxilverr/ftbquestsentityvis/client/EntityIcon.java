@@ -14,6 +14,7 @@ import dev.ftb.mods.ftblibrary.config.NameMap;
 import dev.ftb.mods.ftblibrary.icon.Icon;
 import dev.ftb.mods.ftblibrary.icon.ItemIcon;
 import dev.ftb.mods.ftblibrary.ui.GuiHelper;
+import dev.ftb.mods.ftblibrary.util.client.ClientTextComponentUtils;
 import dev.ftb.mods.ftbquests.client.ClientQuestFile;
 import dev.ftb.mods.ftbquests.quest.Quest;
 import dev.ftb.mods.ftbquests.quest.QuestObject;
@@ -57,6 +58,7 @@ public class EntityIcon extends Icon {
     private final EntityVisSettings settings;
     private final QuestObject owner;
     private final List<String> variants;
+    private final Component nameTag;
 
     private Entity[] cachedEntities;
     private boolean[] creationFailed;
@@ -69,6 +71,7 @@ public class EntityIcon extends Icon {
         this.owner = owner;
         List<String> split = EntityNbt.split(settings.nbt);
         this.variants = split.isEmpty() ? List.of("") : split;
+        this.nameTag = settings.nameTag.isBlank() ? null : ClientTextComponentUtils.parse(settings.nameTag);
     }
 
     public EntityIcon(ResourceLocation entityId, String nbt) {
@@ -149,6 +152,9 @@ public class EntityIcon extends Icon {
             Entity created = type == EntityType.PLAYER ? player(level) : type == null ? null : type.create(level);
             if (created != null) {
                 applyNbt(created, variants.get(index));
+                if (nameTag != null) {
+                    created.setCustomName(nameTag);
+                }
                 cachedEntities[index] = created;
                 return created;
             }
@@ -358,6 +364,10 @@ public class EntityIcon extends Icon {
             GuiHelper.setupDrawing();
         }
 
+        if (nameTag != null && !silhouette) {
+            drawNameTag(graphics, cx, cy - (bbHeight + 0.5F) * scale * Math.cos(Math.toRadians(tilt)), scale * 0.025F);
+        }
+
         if (entity instanceof Player) {
             String skin = settings.skin.trim();
             PlayerSkins.Status status = PlayerSkins.status(skin);
@@ -368,6 +378,20 @@ public class EntityIcon extends Icon {
                         waiting ? 0xFFFFFF : 0xFF5555, x, y, w, h);
             }
         }
+    }
+
+    private void drawNameTag(GuiGraphics graphics, double x, double y, float scale) {
+        Minecraft mc = Minecraft.getInstance();
+        int width = mc.font.width(nameTag);
+        int left = -width / 2;
+        PoseStack pose = graphics.pose();
+        pose.pushPose();
+        pose.translate(x, y, 100.0);
+        pose.scale(scale, scale, 1.0F);
+        graphics.fill(left - 1, -1, left + width + 1, 9, (int) (mc.options.getBackgroundOpacity(0.25F) * 255.0F) << 24);
+        graphics.drawString(mc.font, nameTag, left, 0, 0xFFFFFF, false);
+        pose.popPose();
+        GuiHelper.setupDrawing();
     }
 
     private static void drawCaption(GuiGraphics graphics, Component text, String dots, int color, int x, int y, int w, int h) {
