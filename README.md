@@ -1,4 +1,5 @@
-<img width="768" height="456" alt="FTB Quests Entity Visualization Banner" src="https://github.com/user-attachments/assets/f1812ded-a3d0-4aec-806e-846fff16cb52" />
+<img width="768" height="456" alt="banner" src="https://github.com/user-attachments/assets/9a22a848-924f-4a18-b9fd-5797495f07de" />
+
 
 This is an unofficial add-on mod for FTB Quests.
 
