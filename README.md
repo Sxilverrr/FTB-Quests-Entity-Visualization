@@ -20,15 +20,9 @@ Config:
 - Full‑bright rendering toggle
 - Entity tag cycling toggle and cycle speed (the speed also applies to NBT variant cycling)
 
-Compatibility:
-Requires FTB Quests and FTB Library.
-
-FTB Quests: https://www.curseforge.com/minecraft/mc-mods/ftb-quests-forge
-
-FTB Library: https://www.curseforge.com/minecraft/mc-mods/ftb-library-forge
-
+Dependencies:
+FORGE: [FTB Quests](https://www.curseforge.com/minecraft/mc-mods/ftb-quests-forge) [FTB Library](https://www.curseforge.com/minecraft/mc-mods/ftb-library-forge).
+FABRIC: [FTB Quests](https://www.curseforge.com/minecraft/mc-mods/ftb-quests-fabric) [FTB Library](https://www.curseforge.com/minecraft/mc-mods/ftb-library-fabric)
 
 Credit:
-Inspired by the entity visualization in Better Questing hunt task.
-
-Better Questing: https://www.curseforge.com/minecraft/mc-mods/better-questing
+Inspired by the entity visualization in [Better Questing](https://www.curseforge.com/minecraft/mc-mods/better-questing) hunt task.
