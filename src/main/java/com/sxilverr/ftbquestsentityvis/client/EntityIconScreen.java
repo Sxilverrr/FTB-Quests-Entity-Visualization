@@ -81,8 +81,12 @@ public final class EntityIconScreen {
         image.setPosition(x, y);
         open(SHOW_TITLE, accepted -> {
             if (accepted) {
+                //? if >=1.21.1 {
+                /*dev.architectury.networking.NetworkManager.sendToServer(dev.ftb.mods.ftbquests.net.CreateObjectMessage.requestCreation(image));*/
+                //?} else {
                 chapter.addImage(image);
                 send(chapter);
+                //?}
             }
             screen.openGui();
         }, g -> image.fillConfigGroup(g.getOrCreateSubgroup("entity_image")));
