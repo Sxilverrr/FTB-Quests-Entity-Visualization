@@ -45,6 +45,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 @Environment(EnvType.CLIENT)
@@ -53,6 +54,7 @@ public class EntityIcon extends Icon {
     private static final long ANIM_TICK_INTERVAL_MS = 50L;
     private static final float WALK_ANIM_SPEED = 0.6F;
     private static final float MIN_CYCLE_SECONDS = 0.1F;
+    private static final Map<String, String> DEFAULT_NBT = Map.of("ydtwo:twisted_warden", "{TwistedWardenIntroCompleted:1b}");
 
     private final ResourceLocation entityId;
     private final EntityVisSettings settings;
@@ -61,6 +63,7 @@ public class EntityIcon extends Icon {
     private final Component nameTag;
 
     private Entity[] cachedEntities;
+    private ModelBounds[] cachedBounds;
     private boolean[] creationFailed;
     private Level cachedLevel;
     private long lastAnimTickMs;
@@ -132,7 +135,7 @@ public class EntityIcon extends Icon {
         }
     }
 
-    private Entity getEntity() {
+    private Entity getEntity(int index) {
         Level level = Minecraft.getInstance().level;
         if (level == null) {
             return null;
@@ -140,10 +143,10 @@ public class EntityIcon extends Icon {
         if (cachedLevel != level || cachedEntities == null) {
             cachedLevel = level;
             cachedEntities = new Entity[variants.size()];
+            cachedBounds = new ModelBounds[variants.size()];
             creationFailed = new boolean[variants.size()];
             lastAnimTickMs = 0L;
         }
-        int index = cycleIndex(settings.cycleSeconds, variants.size());
         if (cachedEntities[index] != null || creationFailed[index]) {
             return cachedEntities[index];
         }
@@ -151,11 +154,13 @@ public class EntityIcon extends Icon {
             EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(entityId);
             Entity created = type == EntityType.PLAYER ? player(level) : type == null ? null : type.create(level);
             if (created != null) {
-                applyNbt(created, variants.get(index));
+                String variant = variants.get(index);
+                applyNbt(created, variant.isEmpty() ? DEFAULT_NBT.getOrDefault(entityId.toString(), "") : variant);
                 if (nameTag != null) {
                     created.setCustomName(nameTag);
                 }
                 cachedEntities[index] = created;
+                cachedBounds[index] = ModelBounds.measure(created);
                 return created;
             }
         } catch (Throwable ignored) {
@@ -259,7 +264,8 @@ public class EntityIcon extends Icon {
 
     @Override
     public void draw(GuiGraphics graphics, int x, int y, int w, int h) {
-        Entity entity = getEntity();
+        int index = cycleIndex(settings.cycleSeconds, variants.size());
+        Entity entity = getEntity(index);
         if (entity == null) {
             drawFallback(graphics, x, y, w, h);
             return;
@@ -270,14 +276,23 @@ public class EntityIcon extends Icon {
         float effectiveSize = QuestSizeWrappedIcon.resolveSize(settings.size);
         float bbHeight = Math.max(entity.getBbHeight(), 0.1F);
         float bbWidth = Math.max(entity.getBbWidth(), 0.1F);
-        float scale = Math.min(h / bbHeight, w / bbWidth) * Math.max(effectiveSize, 0.01F);
+        float fit = Math.min(h / bbHeight, w / bbWidth);
+        float bottom = 0.0F;
+        float top = bbHeight;
+        ModelBounds model = cachedBounds[index];
+        if (model != null && model.fit(w, h) < fit) {
+            fit = model.fit(w, h);
+            bottom = model.minY;
+            top = model.maxY;
+        }
+        float scale = fit * Math.max(effectiveSize, 0.01F);
         if (scale <= 0.0F) {
             drawFallback(graphics, x, y, w, h);
             return;
         }
 
         double cx = x + w / 2.0 + settings.offsetX * w;
-        double cy = y + h / 2.0 + bbHeight * scale / 2.0 - settings.offsetY * h;
+        double cy = y + h / 2.0 + (bottom + top) * scale / 2.0 - settings.offsetY * h;
 
         float spin = settings.spinMode.resolve(Config.mobsSpin)
                 ? (System.currentTimeMillis() % SPIN_PERIOD_MS) / (float) SPIN_PERIOD_MS * 360.0F * (float) Config.spinSpeed
@@ -365,7 +380,7 @@ public class EntityIcon extends Icon {
         }
 
         if (nameTag != null && !silhouette) {
-            drawNameTag(graphics, cx, cy - (bbHeight + 0.5F) * scale * Math.cos(Math.toRadians(tilt)), scale * 0.025F);
+            drawNameTag(graphics, cx, cy - (top + 0.5F) * scale * Math.cos(Math.toRadians(tilt)), scale * 0.025F);
         }
 
         if (entity instanceof Player) {
